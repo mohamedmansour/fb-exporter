@@ -1,0 +1,120 @@
+<html>
+<head>
+<title>Facebook Doesn't Own My Friends</title>
+
+<!-- For OAuth google authentication. -->
+<script type="text/javascript" src="chrome_ex_oauthsimple.js"></script>
+<script type="text/javascript" src="chrome_ex_oauth.js"></script>
+
+<!-- For importing to google contacts. -->
+<script type="text/javascript" src="gmail-contacts.js"></script>
+<script type="text/javascript" src="csv-contacts.js"></script>
+
+<!-- Add additional export/import methods here. -->
+
+<!--
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+-->
+
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+
+<script type="text/javascript">
+
+var work_tab_id = -1;
+var fb_tab_id = -1;
+var contactsService;
+
+function initFunc() {
+  console.log("initFunc");
+  /*
+  contactsService = new google.gdata.contacts.ContactsService('exampleCo-exampleApp-1.0');
+  */
+
+  chrome.extension.onRequest.addListener(
+    function(request, sender, sendResponse) {
+      console.log(sender.tab ?
+                  "from a content script:" + sender.tab.url :
+                  "from the extension");
+      if (request.switchToWorkerTab) {
+        // Switch to worker tab, creating it if necessary.
+        console.log("switchToWorkerTab");
+        fb_tab_id = sender.tab.id;
+
+        // See if the work tab ID exists, or has been closed.
+        console.log("THE FOLLOWING ERROR IS NORMAL:");
+        chrome.tabs.get(work_tab_id, function(tab) {
+          if (tab) {
+            // worker tab already exists, just switch to it.
+            chrome.tabs.update(work_tab_id, {selected: true});
+          } else {
+            // Tab has never existed (start afresh), or tab existed, but was
+            // closed.
+            var startURL = chrome.extension.getURL("start.html");
+
+            chrome.tabs.create({url: startURL}, function(tab) {
+              work_tab_id = tab.id;
+            });
+          }
+        });
+      }
+
+      if (request.getFbTabId) {
+        console.log("getFbTabId");
+        sendResponse({fb_tab_id: fb_tab_id});
+      }
+
+      if (request.getWorkTabId) {
+        console.log("getWorkTabId");
+        sendResponse({work_tab_id: work_tab_id});
+      }
+
+      if (request.relayInfoForFriend) {
+        // background.html needs to act as an intermediary, because the content
+        // script cannot chrome.tabs.sendRequest() directly to the worker page.
+        console.log("relayInfoForFriend ");
+        chrome.tabs.sendRequest(work_tab_id,
+            {gotInfoForFriend: request.relayInfoForFriend});
+      }
+
+      if (request.googleAccountLogout) {
+        google_Logout();
+      }
+
+      // Export methods need custom setup here:
+      if (request.doGmailExport) {
+        google_StartExportWithFriends(request.requestedFriends);
+      }
+      if (request.doCSVExport) {
+        var csv_text = csv_DoExport(request.requestedFriends);
+        chrome.tabs.sendRequest(work_tab_id,
+            {csvExportFinished:csv_text});
+      }
+
+      /*
+      if (request.getFriendList) {
+        console.log("background.html: getFriendList");
+        chrome.tabs.sendRequest(fb_tab, {getFriendListFromContentScript: 1}, function(response) {
+          sendResponse({getFriendListResponse: response.friendNameList});
+        });
+      }
+
+      if (request.pissOffZuckerberg) {
+        chrome.tabs.sendRequest(fb_tab, {pissOffZuckerberg: 1});
+      }
+      */
+    });
+
+}
+
+/*
+google.load("gdata", "1.x");
+google.setOnLoadCallback(initFunc);
+*/
+
+</script>
+
+</head>
+
+<body onload="initFunc();"/>
+
+</html>
