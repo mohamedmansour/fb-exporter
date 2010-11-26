@@ -8,5 +8,5 @@
    "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC7OdCbyqMh6AAgO02O6Qzs3UCzgF4o8o+KFs1yuyS+5Vw9jBoAFOVDrqTBsRscG2Q9Y/yfKCGSMUFWdu8wh8YGhFuAGbfLuogiAzhdujns9J+696Wd0hi5rhu+w38MBp64p+m1FhgTF1LM6yq7bDMGjo4WPlIqBaTwGWpeoKT9RQIDAQAB",
    "name": "Facebook Doesn't Own My Friends",
    "permissions": [ "tabs", "http://www.google.com/m8/feeds/*", "https://www.google.com/accounts/OAuthAuthorizeToken", "https://www.google.com/accounts/OAuthGetAccessToken" ],
-   "version": "0.2"
+   "version": "1.0"
 }
