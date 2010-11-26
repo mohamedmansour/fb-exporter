@@ -218,7 +218,7 @@ $(document).ready(function() {
   $("a", exportFriendsLink)
       .attr("href", "javascript:void(0);")
       .text("Export friends!")
-      .css("color", "red")
+      .css("color", "white")
       .click(goToFriendPageAndStart);
   console.log(exportFriendsLink);
   exportFriendsLink.appendTo($("#pageNav a:contains('Home')").parent());
