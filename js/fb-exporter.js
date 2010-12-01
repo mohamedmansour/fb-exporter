@@ -140,6 +140,59 @@ function getFriendList() {
   return ret;
 }
 
+/**
+ * Imitiate Facebook's dialog UI.
+ * @param {string} title The title of the dialog.
+ * @param {string} msg The main message.
+ * @param {string} btnConfirmName The name of the confirm button.
+ * @param {Function} confirmCallback The callback when confirm has been clicked.
+ * @param {Function} cancelCallback The callback when cancel has been clicked.
+ */
+function createFacebookDialog(title, msg, btnConfirmName,
+                               confirmCallback, cancelCallback) {
+   // Creates the confirm component.
+   var lblConfirm = $('<label class="uiButton uiButtonLarge uiButtonConfirm">');   
+   $('<input>', {
+      type: 'button',
+      val: btnConfirmName,
+      click: confirmCallback
+   }).appendTo(lblConfirm);
+   
+   // Creates the cancel component.
+   var lblCancel = $('<label class="uiButton uiButtonLarge">');
+   $('<input>', {
+      type: 'button',
+      val: 'Cancel',
+      click: cancelCallback
+   }).appendTo(lblCancel);
+   
+   // Wrap the buttons to a container.
+   var dialogButtons = $('<div class="dialog_buttons clearfix">');
+   lblConfirm.appendTo(dialogButtons);
+   lblCancel.appendTo(dialogButtons);
+   
+   // Main contents for the dialog description.
+   var dialogContent = $('<div class="dialog_content">');
+   $('<div class="dialog_body">' +
+     '  <form id="report_form" onsubmit="return false;">' +
+     '    <div class="pam uiBoxWhite noborder">' +
+     '      <div class="pbm">' +
+     '        ' + msg +
+     '      </div>' +
+     '    </div>' +
+     '  </form>' +
+     '</div>').appendTo(dialogContent);
+   dialogButtons.appendTo(dialogContent);
+   
+   // Add the title to the the dialog and the contents as well.
+   var dialog = $('<div class="pop_container_advanced">');
+   var dialogPopup = $('<div class="pop_content" id="pop_content">');
+   $('<h2 class="dialog_title"><span>' + title + '</span></h2>').appendTo(dialogPopup);
+   dialogContent.appendTo(dialogPopup);
+   dialogPopup.appendTo(dialog);
+   return dialog;
+}
+
 function goToFriendPageAndStart() {
   // See if we are at the right page to start.  We need to be at the /friends/*
   // location, to get access to the list of friends.  Any other page won't do.
@@ -151,36 +204,23 @@ function goToFriendPageAndStart() {
     switchToWorkerTab();
   } else {
     var redirect = document.createElement("div");
-    $(redirect).css("background-color", "#f8f8ff")
-               .css("color", "black")
-               .css("border-radius", "10px")
-               .css("border", "thick solid")
+    $(redirect).attr("id", "fb-exporter-redirect")
                .css("position", "absolute")
-               .css("padding", "20pt")
-               .css("font-size", "14pt")
-               .css("width", "50%")
                .css("left", "25%")
                .css("right", "25%")
                .css("top", "20%")
-               .attr("id", "fb-exporter-redirect")
-               .html(
-        "First, you need to go to <a href='http://www.facebook.com/friends/edit'>http://www.facebook.com/friends/edit</a>");
-
-    $("a", $(redirect)).click( function() {
-      $("#fb-exporter-redirect").remove();
-      switchToWorkerTab();
-    });
-
-    $(redirect).append(
-        $("<a/>").attr("href", "javascript:void(0);")
-                 .css("position", "absolute")
-                 .css("bottom", "0px")
-                 .css("font-size", "10pt")
-                 .css("right", "0px")
-                 .css("padding", "5px")
-                 .text("cancel")
-                 .click(function() { $("#fb-exporter-redirect").remove(); }));
-
+               .html(createFacebookDialog(
+                 'Redirection needed',
+                 'First, you need to go to your friends page',
+                 'Redirect now',
+                 function() {
+                   $("#fb-exporter-redirect").remove();
+                   switchToWorkerTab();
+                 },
+                 function() {
+                   $("#fb-exporter-redirect").remove();
+                 })
+               );
     $(document.body).append(redirect);
   }
 }
