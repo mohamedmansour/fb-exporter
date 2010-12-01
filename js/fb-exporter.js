@@ -216,6 +216,7 @@ function goToFriendPageAndStart() {
                  function() {
                    $("#fb-exporter-redirect").remove();
                    switchToWorkerTab();
+                   window.location = 'http://www.facebook.com/friends/edit';
                  },
                  function() {
                    $("#fb-exporter-redirect").remove();

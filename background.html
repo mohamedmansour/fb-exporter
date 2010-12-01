@@ -41,7 +41,6 @@ function initFunc() {
         fb_tab_id = sender.tab.id;
 
         // See if the work tab ID exists, or has been closed.
-        console.log("THE FOLLOWING ERROR IS NORMAL:");
         chrome.tabs.get(work_tab_id, function(tab) {
           if (tab) {
             // worker tab already exists, just switch to it.
