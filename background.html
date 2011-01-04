@@ -1,7 +1,5 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>Facebook Doesn't Own My Friends</title>
-
 <!-- For OAuth google authentication. -->
 <script type="text/javascript" src="/js/chrome_ex_oauthsimple.js"></script>
 <script type="text/javascript" src="/js/chrome_ex_oauth.js"></script>
@@ -11,109 +9,50 @@
 <script type="text/javascript" src="/js/csv-contacts.js"></script>
 
 <!-- Add additional export/import methods here. -->
-
-<!--
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
--->
-
 <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
-
 <script type="text/javascript">
 
-var work_tab_id = -1;
-var fb_tab_id = -1;
-var contactsService;
+var facebook_id = -1;
 
-function initFunc() {
-  console.log("initFunc");
-  /*
-  contactsService = new google.gdata.contacts.ContactsService('exampleCo-exampleApp-1.0');
-  */
-
-  chrome.extension.onRequest.addListener(
-    function(request, sender, sendResponse) {
-      console.log(sender.tab ?
-                  "from a content script:" + sender.tab.url :
-                  "from the extension");
-      if (request.switchToWorkerTab) {
-        // Switch to worker tab, creating it if necessary.
-        console.log("switchToWorkerTab");
-        fb_tab_id = sender.tab.id;
-
-        // See if the work tab ID exists, or has been closed.
-        chrome.tabs.get(work_tab_id, function(tab) {
-          if (tab) {
-            // worker tab already exists, just switch to it.
-            chrome.tabs.update(work_tab_id, {selected: true});
-          } else {
-            // Tab has never existed (start afresh), or tab existed, but was
-            // closed.
-            var startURL = chrome.extension.getURL("start.html");
-
-            chrome.tabs.create({url: startURL}, function(tab) {
-              work_tab_id = tab.id;
-            });
-          }
-        });
-      }
-
-      if (request.getFbTabId) {
-        console.log("getFbTabId");
-        sendResponse({fb_tab_id: fb_tab_id});
-      }
-
-      if (request.getWorkTabId) {
-        console.log("getWorkTabId");
-        sendResponse({work_tab_id: work_tab_id});
-      }
-
-      if (request.relayInfoForFriend) {
-        // background.html needs to act as an intermediary, because the content
-        // script cannot chrome.tabs.sendRequest() directly to the worker page.
-        console.log("relayInfoForFriend ");
-        chrome.tabs.sendRequest(work_tab_id,
-            {gotInfoForFriend: request.relayInfoForFriend});
-      }
-
-      if (request.googleAccountLogout) {
-        google_Logout();
-      }
-
-      // Export methods need custom setup here:
-      if (request.doGmailExport) {
-        google_StartExportWithFriends(request.requestedFriends);
-      }
-      if (request.doCSVExport) {
-        var csv_text = csv_DoExport(request.requestedFriends);
-        chrome.tabs.sendRequest(work_tab_id,
-            {csvExportFinished:csv_text});
-      }
-
-      /*
-      if (request.getFriendList) {
-        console.log("background.html: getFriendList");
-        chrome.tabs.sendRequest(fb_tab, {getFriendListFromContentScript: 1}, function(response) {
-          sendResponse({getFriendListResponse: response.friendNameList});
-        });
-      }
-
-      if (request.pissOffZuckerberg) {
-        chrome.tabs.sendRequest(fb_tab, {pissOffZuckerberg: 1});
-      }
-      */
-    });
-
+/**
+* Open a singleton page, which means, if a page already exists, it just selects it.
+* @param url The page which it will navigate to.
+*/
+function openSingletonPage(url) {
+  var views = chrome.extension.getViews();
+  for (var v in views) {
+    var view = views[v];
+    if (view.location.href.indexOf(url) == 0) {
+      view.focus();
+      return;
+    }
+  }
+  chrome.tabs.create({url: url});
 }
 
-/*
-google.load("gdata", "1.x");
-google.setOnLoadCallback(initFunc);
-*/
-
+// Extension request listener.
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+  if (request.switchToWorkerTab) {
+    facebook_id = sender.tab.id;
+    console.log('switchToWorkerTab');
+    openSingletonPage(chrome.extension.getURL('start.html'));
+  }
+  else if (request.relayInfoForFriend) {
+    console.log('relayInfoForFriend');
+    chrome.tabs.sendRequest(work_tab_id,
+        {gotInfoForFriend: request.relayInfoForFriend});
+  }
+  else if (request.pissOffZuckerberg) {
+    chrome.tabs.sendRequest(fb_tab, {pissOffZuckerberg: 1});
+  }
+  else if (request.doGmailExport) {
+    google_StartExportWithFriends(request.requestedFriends);
+  }
+  else if (request.doCSVExport) {
+    var csv_text = csv_DoExport(request.requestedFriends);
+    chrome.tabs.sendRequest(work_tab_id, {csvExportFinished:csv_text});
+  }
+  
+});
 </script>
-
-</head>
-
-<body onload="initFunc();"/>
-
 </html>

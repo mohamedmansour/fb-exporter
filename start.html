@@ -1,23 +1,20 @@
 <html>
 <head>
-<title>Facebook Doesn't Own My Friends</title>
+<title>Facebook Friend Exporter</title>
 
 <style type="text/css">
 
 body {
   font-family: Verdana;
-  font-size: 18pt;
-  color: #593E1A;
-  background-color: #6B78B4;
+  color: #fff;
+  background-color: #ccc;
 }
 
 .bubble {
-  background-color: #79BEDB;
+  background-color: #444;
   margin: 15pt;
   border: thick solid;
   position: relative;
-  left: 25%;
-  width: 50%;
   border-radius: 10px;
   padding: 15pt;
 }
@@ -26,15 +23,50 @@ p {
   margin: 10pt;
 }
 
+.friend-row {
+  position: relative;
+}
+
+#friendlist li {
+  display: inline;
+  width: 60px;
+  height: 60px;
+}
+
+#friendlist li span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: rgba(0,0,0,0.4);
+  font-size: 11px;
+  margin: 5px;
+  text-align: center;
+  font-weight: bold;
+  display: none;
+}
+
+#friendlist li img {
+  width: 50px;
+  height: 50px;
+  margin: 5px;
+  border: 5px solid #444;
+}
+
+#friendlist li img:hover {
+  cursor:pointer;
+  border: 5px solid #fff;
+}
+
 .hilite {
   color: #266A2E;
 }
 
 .tos-guarded {
-  display: none;
 }
 
-#friendlist_div,  #step2, #step3, #step4 {
+#friendlist,  #step2, #step3, #step4 {
   display: none;
 }
 
@@ -119,22 +151,74 @@ p {
 }
 </style>
 
-
 <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
-
 <script type="text/javascript">
 
 var total_visible_friends = 0;
 var friends_remaining_count = 0;
 
-function nameToID(name, namespace) {
-  // Convert a name to a unique ID.  Basically just remove the whitespace, and
-  // other characters which jquery doesn't like.  
-  // Could use md5 here, but it's overkill.
+/**
+ * Render all my friends below. Display their profile pick and a link to their
+ * profile page. As well, when hovered, show their name.
+ */
+function renderFriendList() {
+  $('#step1').hide();
+  $('#friendlist').show();
+  $('#step2').show();
 
-  // namespace is an additional string that is prepended to the returned ID, to
-  // distinguish between different elements.
-  return namespace + "_" + name.replace(/(:|\.|\s)/g, "__");
+  // Reset counter of visible friends. This is just used to show how many friends
+  // we have, and reused for step 3.
+  total_visible_friends = 0;
+  
+  // The friends list is stored in the background page. Lets get it then render.
+  chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+                          {getFriendsMap: 1}, function(response) {
+    $.each(response.data, function(key, value) {
+      total_visible_friends++;
+      var li = document.createElement('li');
+      $(li).addClass('friend-row')
+           .attr('id', key)
+           .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
+                 '<span>P</span>')
+           .click(
+             function() {
+                chrome.tabs.create({url: 'http://facebook.com' + value.path });
+             }
+           );
+      $('#friendlist').append(li);
+    });
+
+    // Check if we have any friends.
+    if (total_visible_friends == 0) {
+      var li = document.createElement('li');
+      $(li).addClass('friend-row')
+           .text('Looks like you have no friends? Impossible! You probably need ' +
+                 'to pick a different network (see above).');
+    }
+
+    // Show friend counter. Reuse this from step 3.
+    $('#remaining-friend-count').text(total_visible_friends + ' friends!');
+    $('#remaining-friend-count').show();
+
+    // Initialize the remaining count, used for step 3.
+    friends_remaining_count = total_visible_friends;
+  });
+}
+
+function startCrunching() {
+  $('#step2').hide();
+  $('#step3').show();
+
+  $('#remaining-friend-count').text(friends_remaining_count + ' remaining');
+
+  // Show pending for each element.
+  $.each(document.querySelectorAll('#friendlist li span'), function(key, value) {
+    $(value).show();
+  });
+  
+  // Start request, let the background page start the long long long process!
+  chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+                          {startExportFriendData: 1});
 }
 
 function gotInfoForFriend(friend) {
@@ -200,36 +284,6 @@ function gotInfoForFriend(friend) {
   }
 }
 
-function updateFriendList() {
-  console.log("continue1 clicked");
-
-  $("#step1").hide();
-
-  $("#friendlist_div").show();
-  $("#step2").show();
-
-  $("#friendlist_ul li").remove();
-
-  chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().fb_tab_id,
-                          {getFriendListFromContentScript: 1}, function(response) {
-    console.log(response.friendNameList);
-    if ($(response.friendNameList).length == 0) {
-      var li = document.createElement("li");
-      $(li).addClass("friend-row")
-           .text("Looks like you have no friends? Impossible! You probably need to pick a different network (see above).");
-    }
-
-    $(response.friendNameList).each( function(idx, e) {
-      var li = document.createElement("li");
-      $(li).addClass("friend-row")
-           .attr("id", nameToID(e, "li"))
-           .text(e);
-
-      $("#friendlist_ul").append(li);
-    });
-  });
-}
-
 function setupAndStartExport(request) {
   // Get a list of the visible, checked friends that we want to send to gmail
   // contacts.
@@ -265,9 +319,9 @@ $(document).ready(function() {
 
   $("#tos").click( function() {
     if ($("#tos").attr("checked")) {
-      $(".tos-guarded").show();
+      $(".tos-guarded").attr("disabled", false);
     } else {
-      $(".tos-guarded").hide();
+      $(".tos-guarded").attr("disabled", true);
     }
   });
 
@@ -281,9 +335,6 @@ $(document).ready(function() {
         gotInfoForFriend(request.gotInfoForFriend);
 
         sendResponse({OK: 1});
-      }
-      if (request.refreshFriendList) {
-        updateFriendList();
       }
       if (request.csvExportFinished) {
         var csv_popup = $("<div/>");
@@ -334,32 +385,9 @@ $(document).ready(function() {
       }
     });
 
-  $(".continue1").click(updateFriendList);
+  $(".continue1").click(renderFriendList);
 
-  $("#back-to-fb").click(function() {
-    chrome.tabs.update(chrome.extension.getBackgroundPage().fb_tab_id, {selected: true});
-  });
-
-  $("#start-crunching").click(function() {
-    total_visible_friends = $(".friend-row").length;
-    friends_remaining_count = $(".friend-row").length;
-
-    $("#step2").hide();
-
-    $("#remaining-friend-count")
-        .text(friends_remaining_count + " remaining");
-    $("#remaining-friend-count").show();
-
-    $("#step3").show();
-
-    console.log($(".friend-row").length);
-    $(".friend-row").prepend($("#ajax-loader").clone().attr("id", "").show());
-
-    chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().fb_tab_id,
-                            {pissOffZuckerberg: 1}, function(response) {
-        console.log("start.html: pissOffZuckerberg response");
-      });
-  });
+  $("#start-crunching").click(startCrunching);
 
   // Gmail exportation:
   $("#export-to-gmail").click(function() {
@@ -376,18 +404,6 @@ $(document).ready(function() {
 
     setupAndStartExport({doCSVExport: 1});
   });
-
-  /// XXX: Debugging stuff only:
-  $("#gmail-stuff").click(function() {
-    chrome.extension.sendRequest({doGmailExport: 1});
-  });
-
-  /// XXX: Debugging stuff only:
-  $("#gmail-logout").click(function() {
-    chrome.extension.sendRequest({googleAccountLogout: 1}, function(response) {
-    });
-  });
-
 });
 
 </script>
@@ -397,51 +413,41 @@ $(document).ready(function() {
 <div class="bubble" id="step1">
 Hi!
 
-<p>
-Couple of questions for you.
-</p>
+<p>Couple of questions for you.</p>
 
 <ol>
-<li>
-<p>
-Does Facebook own your friends?
-</p>
-
-<p>
-What we mean is, do you think Facebook owns the data about your friends, such
-as their email, their website, their IM name, etc.?
-</p>
-</li>
-
-<li>
-<p>
-Do you think your Facebook friends would mind if you, oh, we don't know,
-decided one day to email them, or visit their website?
-</p>
-</li>
+  <li>Does Facebook own your friends?</li>
+  <li>Do you think Facebook owns the data about your friends, such as their 
+      email, their website, their IM name, etc. that they made public for you
+      to see?
+  </li>
+  <li>Do you think your Facebook friends would mind if you, oh, we don't know,
+      decided one day to email them, or visit their website? How about add them
+      to your address book on your phone?
+  </li>
 </ol>
 
 <p>
-If you answered "hell no" and "no" to the above questions, we can help you get
-your friends' contact info out of Facebook.  We can export the info to your
-Google Contacts (GMail), among other things!
+  If you answered "no" to the above questions, we can help you get your friends'
+  contact info out of Facebook. We can export the info to your Google Contacts 
+  (GMail), among other things!
 </p>
 
 <p>
-Finally, this extension is open source! 
-<a
-href="http://code.google.com/p/fb-exporter/">http://code.google.com/p/fb-exporter/</a>
+  Finally, this extension is open source. You can fork it now on GitHub!
+  <a href="https://github.com/mohamedmansour/fb-exporter/">
+    https://github.com/mohamedmansour/fb-exporter
+  </a>
 </p>
 
 <p>
-THIS CHROME EXTENSION IS NOT AFFILIATED WITH GOOGLE OR FACEBOOK. HERE IS A LINK
-TO THE FACEBOOK <a href="http://www.facebook.com/terms.php">TERMS OF
-SERVICE</a>.
+  THIS CHROME EXTENSION IS NOT AFFILIATED WITH GOOGLE OR FACEBOOK. HERE IS A LINK
+  TO THE FACEBOOK <a href="http://www.facebook.com/terms.php">TERMS OF SERVICE</a>.
 </p>
 
-<p>
-<input type="checkbox" id="tos">I have read the Terms of Service.</a> 
-<a class="tos-guarded continue1" href="javascript:void(0);">Let's get started!</a>
+<p> 
+  <input type="checkbox" id="tos">I have read the Terms of Service.</a> 
+  <button class="tos-guarded continue1" disabled="true">Let's get started!</button>
 </p>
 
 <!--
@@ -452,89 +458,48 @@ SERVICE</a>.
 </div>
 
 <div class="bubble" id="step2">
-<p>
-Fetching friend list... done.  See below.
-</p>
-
-<p>
-Is this list incomplete?  This is just a list of all of the visible friends you
-have showing in your Facebook tab.  
-</p>
-
-<p>
-If you'd like to see more, <a
-id="back-to-fb" href="javascript:void(0);">hop over to Facebook</a> and select "All Friends"
-(or any other network) from the drop down at the top. You can even search for a particular friend, or 
-group of friends.  When you're done, come back and click 
-<a class="continue1" href="javascript:void(0);">refresh list</a>.
-</p>
-
-<p>
-If these are the friends you want to export, <a href="javascript:void(0);"
-id="start-crunching">let's start!</a>
-</p>
-
+  <p> Fetching friend list... done.  See below.</p>
+  <p> These are all the frends that will be exported, 
+      <button id="start-crunching">let's start!</button></p>
 </div>
 
 <div class="bubble" id="step3">
-
-<p>
-Fetching friend details... this could take a while, especially if you're really
-popular!
-</p>
-
-<p>
-<span class="hilite">IMPORTANT:</span> Please don't touch your Facebook tab
-until we're done, thanks!  If you really <strong>must</strong> have your
-Facebook fix <em>right now</em>, <a target="_blank"
-href="http://www.facebook.com">here you go (this will open in a new window)</a>.
-</p>
-
+  <p> Fetching friend details... this could take a while, especially if you're
+      really popular!</p>
+  <p> <span class="hilite">IMPORTANT:</span> Please don't touch your Facebook tab
+  until we're done, thanks!  If you really <strong>must</strong> have your
+  Facebook fix <em>right now</em>, <a target="_blank"
+  href="http://www.facebook.com">here you go (this will open in a new window)</a>.
+  </p>
 </div>
 
 <div class="bubble" id="step4">
-
-<p>
-All done!  Please check the list below. Uncheck the friends you want to skip.
-</p>
-
-<p>
-Now the fun part!  Pick an export button below, and we'll get started copying
-your friend data there!
-</p>
-
-<ul id="export-methods">
-<li class="export-method">
-<input type="image" src="gmail-logo.jpg" id="export-to-gmail" width="60">
-This will log you into your GMail account, and import your Facebook friend data
-into your Contacts.  We'll create a group in your GMail contacts called
-<span class="hilite">"Imported from Facebook"</span> and we'll avoid
-duplicating any existing contacts.
-</li>
-
-<li class="export-method">
-<input type="image" src="csv-icon.gif" id="export-to-csv">
-This will export your contacts as a CSV file.
-</li>
-
-
-</ul>
-
-
+  <p>All done!  Please check the list below. Uncheck the friends you want to skip.</p>
+  <p>Now the fun part!  Pick an export button below, and we'll get started
+     copying your friend data there!</p>
+  <ul id="export-methods">
+    <li class="export-method">
+      <input type="image" src="/img/gmail-logo.jpg" id="export-to-gmail" width="60" />
+      This will log you into your GMail account, and import your Facebook friend data
+      into your Contacts.  We'll create a group in your GMail contacts called
+      <span class="hilite">"Imported from Facebook"</span> and we'll avoid
+      duplicating any existing contacts.
+    </li>
+    <li class="export-method">
+      <input type="image" src="/img/csv-icon.gif" id="export-to-csv" />
+      This will export your contacts as a CSV file.
+    </li>
+  </ul>
 </div>
 
-
-<div class="bubble" id="friendlist_div">
-
-<div id="remaining-friend-count">
-<img src="ajax-loader.gif"/>
+<div class="bubble" id="friendlist">
+  <div id="remaining-friend-count">
+    <img src="/img/ajax-loader.gif"/>
+  </div>
+  <ul id="friendlist"/>
 </div>
 
-<ul id="friendlist_ul"/>
-
-</div>
-
-<img id="ajax-loader" src="ajax-loader.gif"/>
+<img id="ajax-loader" src="/img/ajax-loader.gif"/>
 
 </body>
 </html>

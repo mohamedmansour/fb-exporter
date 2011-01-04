@@ -2,10 +2,20 @@
    "background_page": "background.html",
    "content_scripts": [ {
       "js": [ "/js/jquery-1.4.2.min.js", "/js/fb-exporter.js" ],
-      "matches": [ "http://www.facebook.com/*", "http://facebook.com/*" ]
+      "matches": [ 
+        "http://www.facebook.com/*", 
+        "http://facebook.com/*"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
    } ],
-   "description": "Get *your* data out of Facebook, whether they want you to or not.",
-   "name": "Facebook Doesn't Own My Friends",
-   "permissions": [ "tabs", "http://www.google.com/m8/feeds/*", "https://www.google.com/accounts/OAuthAuthorizeToken", "https://www.google.com/accounts/OAuthGetAccessToken" ],
+   "description": "Get *your* data out of Facebook, whether they want you to or not. Facebook doesn't own my friends.",
+   "name": "Facebook Exporter",
+   "permissions": [ 
+      "tabs", 
+      "http://www.google.com/m8/feeds/*", 
+      "https://www.google.com/accounts/OAuthAuthorizeToken", 
+      "https://www.google.com/accounts/OAuthGetAccessToken" 
+    ],
    "version": "1.0"
 }
