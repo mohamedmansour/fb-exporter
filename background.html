@@ -13,6 +13,7 @@
 <script type="text/javascript">
 
 var facebook_id = -1;
+var worker_id = -1;
 
 /**
 * Open a singleton page, which means, if a page already exists, it just selects it.
@@ -27,7 +28,9 @@ function openSingletonPage(url) {
       return;
     }
   }
-  chrome.tabs.create({url: url});
+  chrome.tabs.create({url: url}, function(tab) {
+    worker_id = tab.id;
+  });
 }
 
 // Extension request listener.
@@ -39,8 +42,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   }
   else if (request.relayInfoForFriend) {
     console.log('relayInfoForFriend');
-    chrome.tabs.sendRequest(work_tab_id,
-        {gotInfoForFriend: request.relayInfoForFriend});
+    chrome.tabs.sendRequest(worker_id, {
+        gotInfoForFriend: request.relayInfoForFriend
+    });
   }
   else if (request.pissOffZuckerberg) {
     chrome.tabs.sendRequest(fb_tab, {pissOffZuckerberg: 1});

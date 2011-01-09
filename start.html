@@ -158,7 +158,7 @@ var total_visible_friends = 0;
 var friends_remaining_count = 0;
 
 /**
- * Render all my friends below. Display their profile pick and a link to their
+ * Render all my friends below. Display their profile pic and a link to their
  * profile page. As well, when hovered, show their name.
  */
 function renderFriendList() {
@@ -205,6 +205,10 @@ function renderFriendList() {
   });
 }
 
+/**
+ * The main process to start the lengthy process. This will spawn an iframe
+ * for every user so we can extract data from it.
+ */
 function startCrunching() {
   $('#step2').hide();
   $('#step3').show();

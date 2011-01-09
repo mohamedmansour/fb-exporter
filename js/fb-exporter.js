@@ -31,7 +31,10 @@ window.addEventListener('friendExported', function() {
   switchToWorkerTab();
 });
   
-  
+/**
+ * Switches back to the worker tab where you can see all your friends being
+ * processed.
+ */
 function switchToWorkerTab() {
   // The extension will handle the case if the worker tab already exists.
   chrome.extension.sendRequest({switchToWorkerTab: 1}, function(response) {
@@ -39,6 +42,17 @@ function switchToWorkerTab() {
   });
 }
 
+/**
+ * Creates a custom Facebook lookalike dialog. 
+ * @param {Object} data A map with the following keys:
+ *                      - id: The ID for this dialog.
+ *                      - title: The title the appears on the header.
+ *                      - message: The description of the dialog, appears middle.
+ *                      - yes_text: The text for the yes button.
+ *                      - yes_callback: The callback when yes clicked.
+ *                      - cancel_callback: The callback when cancel clicked.
+ * @returns {HTMLElement} The DOM of the dialog returned.
+ */
 function createFacebookDialog(data) {
    // Creates the confirm component.
    var lblConfirm = $('<label class="uiButton uiButtonLarge uiButtonConfirm">');   
@@ -169,19 +183,30 @@ function renderExportFriendsLink() {
   exportFriendsLink.appendTo($('#pageNav a:contains("Home")').parent());
 }
 
-
-
+/**
+ * When the iframe has been loaded, we wait for N seconds (3s default), 
+ * Once frame is loaded, we extract the information, then pass the data back
+ * to the background page for post processing.
+ *
+ * TODO(mohamed): The email usually gets rendered as an image captcha, I believe
+ *                is purposely there because we are scraping our own pages to 
+ *                automatically sync our friends contact information. Perhaps
+ *                there is such limitation on how many friend pages we can view
+ *                This needs to be handled in a way, to OCR that image, and 
+ *                store it. For now, we need to inform the user an error occured
+ *                because Facebook decided to convert their email address to
+ *                an unreadable image for machines to quickly analyse and store.
+ */
 function friendInfoIframeLoaded() {
-  console.log("iframe loaded " + this.src);
-  
   var iframe = this;
   
   // We can't access the iframe elements directly, because they probably have
   // not loaded yet.  The contact information fields are appended dynamically.
   // Instead, we use setTimeout to give all the pagelets a chance to load.
   setTimeout(function(iframe) {
-    var friend_name = $("#profile_name", $(iframe.contentDocument)).text();
-
+    var friend_id = iframe.src.substring(iframe.src.lastIndexOf('#') + 1)
+    var friend_name = friendsMap[friend_id].text;
+    
     // NOTE TO FUTURE SELF: If this extension breaks, it's probably because the
     // following lines no longer work.  Namely, the fragile selector access
     // being done below to get at the corresponding fields might need to be
@@ -189,35 +214,15 @@ function friendInfoIframeLoaded() {
     // fixes.  PS: Who wins the next 20 world series??
     //
     // To gather additional friend information, add the right selector here.
-    var email = $("li", $("th.label:contains('Email')", $(iframe.contentDocument)).parent());
-    var aims = $("td", $("th.label:contains('AIM')", $(iframe.contentDocument)).parent());
-    var websites = $("li", $("th.label:contains('Website')", $(iframe.contentDocument)).parent());
-    var fb = $("td", $("th.label:contains('Facebook')", $(iframe.contentDocument)).parent());
-    var gtalks = $("td", $("th.label:contains('Google Talk')", $(iframe.contentDocument)).parent());
+    var email = $('li', $('th.label:contains("Email")', $(iframe.contentDocument)).parent());
+    var aims = $('td', $('th.label:contains("AIM")', $(iframe.contentDocument)).parent());
+    var websites = $('li', $('th.label:contains("Website")', $(iframe.contentDocument)).parent());
+    var fb = $('td', $('th.label:contains("Facebook")', $(iframe.contentDocument)).parent());
+    var gtalks = $('td', $('th.label:contains("Google Talk")', $(iframe.contentDocument)).parent());
 
-    console.log(friend_name);
-    console.log("emails " + email.map(function() {
-      return $(this).text();
-    }).get());
-    console.log(email.map(function() {
-      return $(this).text();
-    }).get());
-    console.log("aims " + aims.map(function() {
-      return $(this).text();
-    }).get());
-
-    console.log("websites " + websites.map(function() {
-      return $(this).text();
-    }).get());
-
-    console.log("fb " + fb.text());
-    console.log("gtalks " + gtalks.map(function() {
-      return $(this).text();
-    }).get());
-
-    console.log("======================");
-
+    // Storage for post processing.
     var friend = {};
+    friend.id = friend_id;
     friend.name = friend_name;
     friend.email = email.map(function() {
       return $(this).text();
@@ -225,47 +230,46 @@ function friendInfoIframeLoaded() {
     friend.aims = aims.map(function() {
       return $(this).text();
     }).get();
-
     friend.websites = websites.map(function() {
       return $(this).text();
     }).get();
-
     friend.fb = fb.text();
     friend.gtalks = gtalks.map(function() {
       return $(this).text();
     }).get();
 
-    //chrome.extension.sendRequest({relayInfoForFriend: friend}, function(response) {
-    //  console.log("work tab received friend");
-    //});
+    // Relay the information to the background page so we could deal with 
+    chrome.extension.sendRequest({relayInfoForFriend: friend});
 
+    // Clean up iframe. All extraction successful.
+    $(iframe).remove();
   }, 3000, this);
-
-  $(iframe).remove();
 }
 
+/**
+ * Start exporting friend data, make sure we delay loading each friend, that way
+ * Facebook wont block us since we are trying to view our friends.
+ */
 function startExportFriendData() {
   var i = 0;
+  // Iterate through each friend by key[value]. 
   $.each(friendsMap, function(key, value) {
+    // Figure out the proper info page, this makes sure to support both
+    // profile name pages with (unique names) or just profile id pages
+    // (numbers). As well, append the ID so we can uniquely identify each page
+    // request with their ID being fetched..
     var href = 'http://www.facebook.com' + value.path;
-    if (href.match("\\?")) {
-      href += "&v=info";
-    } else {
-      href += "?v=info";
-    }
-
-    console.log(href);
+    href.match('\\?') ? href += '&' : href += '?';
+    href += 'v=info#' + key;
 
     // Delay load each friend.
     setTimeout(function() {
-      var iframe = document.createElement("iframe");
-      $(iframe).attr("src", href)
-               .attr("class", "fb-exporter");
-
+      var iframe = document.createElement('iframe');
+      $(iframe).attr('src', href).attr('class', 'fb-exporter');
       $(document.body).prepend(iframe);
       $(iframe).load(friendInfoIframeLoaded);
     }, i * 11000 + Math.random() * 1000);
-    
+
     i++;
   });
 }
