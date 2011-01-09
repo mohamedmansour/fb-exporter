@@ -1,5 +1,10 @@
-var friendsMap = {};
+// Communicate to both worlds, extension and website.
+var exportEvent = document.createEvent('Event');
+exportEvent.initEvent('friendExported', true, true);
 
+// Main friend map which was retrieved by the website.
+var friendsMap = {};    
+    
 // Just draw the export friends link on the top next to the other links.
 renderExportFriendsLink();
 
@@ -13,7 +18,20 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   }
 });
 
+// Listen on the real DOM requests to check if friend has been exported.
+window.addEventListener('friendExported', function() {
+  // Save the map to this content script world, so our extension can read it.
+  var transferDOM = document.getElementById('transfer-dom-area');
+  friendsMap = JSON.parse(transferDOM.innerText);
 
+  // Clean up since we no longer need this.
+  $(transferDOM).remove();
+  
+  // Lets start the process! Super!
+  switchToWorkerTab();
+});
+  
+  
 function switchToWorkerTab() {
   // The extension will handle the case if the worker tab already exists.
   chrome.extension.sendRequest({switchToWorkerTab: 1}, function(response) {
@@ -81,28 +99,32 @@ function createFacebookDialog(data) {
 function exportFacebookContacts() {
   // JS script injection to the facebook's World.
   var postFriendMap = function() {
-    var textarea = document.getElementById('transfer-dom-area');
-    textarea.value = JSON.stringify(FriendSearchPane._data);
+    // Use events to notify the content script. Replicate the event the content
+    // script has, so we can pass this event to that world.
+    var exportEvent = document.createEvent('Event');
+    exportEvent.initEvent('friendExported', true, true);
+    
+    // Create a transfer node DOM, since that is the only way two worlds can
+    // communicate with each other.
+    var transferDOM = document.getElementById('transfer-dom-area');
+    transferDOM.innerText = JSON.stringify(FriendSearchPane._data);
+    
+    // Inform our content script that we have received the object from Facebook.
+    window.dispatchEvent(exportEvent);
   };
   
   // Create a dummy textarea DOM.
-  var textarea = document.createElement('textarea');
-  $(textarea).attr('id', 'transfer-dom-area')
-             .hide()
-             .appendTo($(document.body));
+  var transferDOM = document.createElement('div');
+  $(transferDOM).attr('id', 'transfer-dom-area')
+                .hide()
+                .appendTo($(document.body));
   
   // Start injecting the JS script.
   var script = document.createElement('script');
   script.appendChild(document.createTextNode('(' + postFriendMap + ')();'));
-  document.body.appendChild(script);
-  
-  // Inform our world that we have received the friend map data.
-  friendsMap = JSON.parse(textarea.value);
-  
-  // Clean up since we no longer need this.
-  $(textarea).remove();
+  document.body.appendChild(script);  
 }
-
+  
 /**
  * To make sure the user wants to start exporting, we need to prompt her to
  * see if it's OK to go to the right page (she might have some input in an
@@ -113,7 +135,6 @@ function goToFriendPageAndStart() {
   // location, to get access to the list of friends. Any other page won't do.
   if (document.location.pathname.match('^/friends/edit') && document.location.search == 0) {
     exportFacebookContacts();
-    switchToWorkerTab();
   }
   else {     
     $(document.body).append(createFacebookDialog({
