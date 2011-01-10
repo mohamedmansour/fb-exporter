@@ -27,24 +27,40 @@ p {
   position: relative;
 }
 
+#friendlist {
+  padding-top: 30px;
+}
+
 #friendlist li {
-  display: inline;
-  width: 60px;
-  height: 60px;
+  display: inline-block;
+  position: relative;
 }
 
 #friendlist li span {
   position: absolute;
   bottom: 0;
-  left: 0;
+  left: 5px;
   height: 20px;
-  width: 20px;
+  width: 60px;
   background-color: rgba(0,0,0,0.4);
-  font-size: 11px;
-  margin: 5px;
+  border-radius: 10px;
+  font-size: 8px;
+  line-height: 20px;
   text-align: center;
   font-weight: bold;
   display: none;
+}
+
+#friendlist li.processed span {
+  background-color: rgba(255,255,0,0.4);
+}
+
+#friendlist li.success span {
+  background-color: rgba(0,255,0,0.4);
+}
+
+#friendlist li.failed span {
+  background-color: rgba(255,0,0,0.4);
 }
 
 #friendlist li img {
@@ -56,7 +72,12 @@ p {
 
 #friendlist li img:hover {
   cursor:pointer;
-  border: 5px solid #fff;
+  border-color: #fff;
+  border-radius: 10px;
+}
+
+#friendlist li.processed img:hover {
+  border-color: #444;
 }
 
 .hilite {
@@ -89,6 +110,9 @@ p {
 
 .checkbox {
   size: 18pt;
+  position: absolute;
+  top: 5px;
+  left: 5px;
 }
 
 .export-method {
@@ -102,19 +126,6 @@ p {
 
 .export-method input:active {
   border: inset;
-}
-
-.exported-status {
-  font-style: italic;
-  font-size: 12pt;
-}
-
-.success {
-  color: green;
-}
-
-.failed {
-  color: #8B0000;
 }
 
 #csv-popup {
@@ -149,6 +160,18 @@ p {
 
   font-size: 10pt;
 }
+
+#filterfriends {
+  position: absolute;
+  top: 5px;
+  left: 30px;
+}
+
+#filterfriends input, #filterfriends input:focus {
+  padding: 2px;
+  outline: none;
+}
+
 </style>
 
 <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
@@ -179,7 +202,7 @@ function renderFriendList() {
       $(li).addClass('friend-row')
            .attr('id', key)
            .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                 '<span>P</span>')
+                 '<span>PENDING</span>')
            .click(
              function() {
                 chrome.tabs.create({url: 'http://facebook.com' + value.path });
@@ -225,29 +248,42 @@ function startCrunching() {
                           {startExportFriendData: 1});
 }
 
+/**
+ * Friend information recieved that needs to be processed/
+ * @param {object} friend An object that represents a single friend. Keys are:
+ *                        - id: The unique id of the facebook user.
+ *                        - name: The full name.
+ *                        - email: A list of email addresses.
+ *                        - aims: A list of AIM instant messengers.
+ *                        - websites: A list of websites.
+ *                        - fb: The unique facebook URL for the user.
+ *                        - gtalks: Google Talk address.
+ */
 function gotInfoForFriend(friend) {
   console.log(friend.name);
-  // Hide the ajax loading gifs.
-  $('#' + nameToID(friend.name, "li") + ' > img').hide();
-
-  var li = $('#' + nameToID(friend.name, "li"));
-  var checkbox = document.createElement("input");
-  $(checkbox).attr("type", "checkbox")
-             .attr("checked", "1")
-             .attr("id", nameToID(friend.name, "checkbox"))
-             .addClass("checkbox");
-  li.prepend($(checkbox));
+  var item = $('#' + friend.id);
+  item.find('span').text('PROCESSED');
+  item.addClass('processed');
+  
+  var checkbox = document.createElement('input');
+  $(checkbox).attr('type', 'checkbox')
+             .attr('checked', '1')
+             .attr('id', 'checkbox' + friend.id)
+             .addClass('checkbox');
+  item.prepend($(checkbox));
 
   // Attach the friend object to the list item, for later retrieval.
-  li.data(friend);
+  item.data(friend);
 
-  var detail_ul = document.createElement("ul");
-  $(detail_ul).addClass("friend-detail");
-  li.append($(detail_ul));
+  // Create a detailed view, for now disable this until we make a better UI,
+  // perhaps a hover (card) that shows the persons extracted information.
+  var detail_ul = document.createElement('ul');
+  $(detail_ul).addClass('friend-detail');
+  // item.append($(detail_ul));
 
   console.log(friend);
   $.each(friend, function(key, value) {
-    if (key == "name") {
+    if (key == 'name') {
       // No need to show name, since it's part of the parent li.
       return;
     }
@@ -255,13 +291,13 @@ function gotInfoForFriend(friend) {
     if (value) {
       if ($.isArray(value)) {
         $.each(value, function(k, v) {
-          var detail_li = document.createElement("li");
-          $(detail_li).text(key + ": " + v);
+          var detail_li = document.createElement('li');
+          $(detail_li).text(key + ': ' + v);
           $(detail_ul).append($(detail_li));
         });
       } else {
-        var detail_li = document.createElement("li");
-        $(detail_li).text(key + ": " + value);
+        var detail_li = document.createElement('li');
+        $(detail_li).text(key + ': ' + value);
         $(detail_ul).append($(detail_li));
       }
     }
@@ -269,75 +305,70 @@ function gotInfoForFriend(friend) {
 
   friends_remaining_count -= 1;
 
-  $("#remaining-friend-count").text(
-      friends_remaining_count + " remaining");
+  $('#remaining-friend-count').text(friends_remaining_count + ' remaining');
 
   if (friends_remaining_count == 0) {
     // All of the friend info for the visible subset of friends has been
     // received.  Show specific export buttons now.
-    $("#step3").hide();
-    $("#step4").show();
+    $('#step3').hide();
+    $('#step4').show();
 
     // Remove the ajax loading gif.
-    $("#export-methods img").remove();
+    $('#export-methods img').remove();
 
-    chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().fb_tab_id,
-                            {hideTopBanner: 1});
+    //chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+    //                        {hideTopBanner: 1});
 
-    $("#remaining-friend-count").hide();
+    $('#remaining-friend-count').hide();
   }
 }
 
+/**
+ * Setup a list of the visible, checked friends that we want to send to 
+ * export.
+ */
 function setupAndStartExport(request) {
-  // Get a list of the visible, checked friends that we want to send to gmail
-  // contacts.
-  var requested_friends = $("li.friend-row").map( function(idx, e) {
+  // Only get the checked friends, disregard all others.
+  var requested_friends = $('li.friend-row').map( function(idx, e) {
     // First, see if this element's checkbox is checked or not.
-    if ($(".checkbox", e).attr("checked") != "1") {
+    if ($('.checkbox', e).attr('checked') != '1') {
       return null;
     }
     return $(e).data();
   }).get();
-  console.log(requested_friends);
 
+  // Reset the remaining friends counter, to take into effect the checked friends.
   friends_remaining_count = requested_friends.length;
-
   if (friends_remaining_count != 0) {
-    $("#remaining-friend-count").show().text(
-        friends_remaining_count + " remaining");
-
-    $(".exported-status").remove();
+    $('#remaining-friend-count').show().text(
+        friends_remaining_count + ' remaining');
   } else {
     // Remove the ajax loading gif, if there are no friends_remaining_count.
-    alert("You don't have any friends selected!");
-    $("#export-methods img").remove();
+    alert('You don\'t have any friends selected!');
+    $('#export-methods img').remove();
   }
 
+  // Send a request to the background page, so that we can start the export
+  // module process.
   request.requestedFriends = requested_friends;
   chrome.extension.sendRequest(request);
 }
 
-
 $(document).ready(function() {
-  console.log("document ready");
-
-  $("#tos").click( function() {
-    if ($("#tos").attr("checked")) {
-      $(".tos-guarded").attr("disabled", false);
+  // Activate the Terms of Service. They must click it to continue.
+  $('#tos').click( function() {
+    if ($('#tos').attr('checked')) {
+      $('.tos-guarded').attr('disabled', false);
     } else {
-      $(".tos-guarded").attr("disabled", true);
+      $('.tos-guarded').attr('disabled', true);
     }
   });
 
   chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse) {
-      console.log(sender.tab ?
-                  "from a content script:" + sender.tab.url :
-                  "from the extension");
       if (request.gotInfoForFriend) {
         console.log("gotInfoForFriend ");
         gotInfoForFriend(request.gotInfoForFriend);
-
         sendResponse({OK: 1});
       }
       if (request.csvExportFinished) {
@@ -364,47 +395,46 @@ $(document).ready(function() {
       if (request.finishedProcessingFriend) {
         // The export finished for this contact.  Update the list, based
         // on the success status, or show the error message.
-        console.log("finishedProcessingFriend ", request.friend.name);
-        console.log("finishedProcessingFriend ", request.success);
-        console.log("finishedProcessingFriend ", request.message);
+        console.log('finishedProcessingFriend ', request.friend.name);
+        console.log('finishedProcessingFriend ', request.success);
+        console.log('finishedProcessingFriend ', request.message);
 
-        var li = $('#' + nameToID(request.friend.name, "li"));
-        var status = document.createElement("span");
-        $(status).addClass("exported-status")
-                 .addClass(request.success ? "success" : "failed")
-                 .text(request.message);
-        $(li).append(status);
-
+        var item = $('#' + request.friend.id);
+        var status_text = request.success ? 'success' : 'failed';
+        item.removeClass('processed');
+        item.find('span').text(status_text.toUpperCase());
+        item.addClass(status_text);
+        
         friends_remaining_count -= 1;
-        $("#remaining-friend-count").show().text(
-            friends_remaining_count + " remaining");
+        $('#remaining-friend-count').show().text(
+            friends_remaining_count + ' remaining');
 
         if (friends_remaining_count == 0) {
           // Remove the ajax loading gif.
-          $("#export-methods img").remove();
+          $('#export-methods img').remove();
 
-          chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().fb_tab_id,
-                                  {hideTopBanner: 1});
+          //chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+          //                        {hideTopBanner: 1});
         }
       }
     });
 
-  $(".continue1").click(renderFriendList);
+  $('.continue1').click(renderFriendList);
 
-  $("#start-crunching").click(startCrunching);
+  $('#start-crunching').click(startCrunching);
 
   // Gmail exportation:
-  $("#export-to-gmail").click(function() {
-    $("#export-to-gmail").parent().prepend(
-          $("#ajax-loader").clone().attr("id", "").show());
+  $('#export-to-gmail').click(function() {
+    $('#export-to-gmail').parent().prepend(
+          $('#ajax-loader').clone().attr('id', '').show());
 
     setupAndStartExport({doGmailExport: 1});
   });
 
   // CSV exportation:
-  $("#export-to-csv").click(function() {
-    $("#export-to-csv").parent().prepend(
-          $("#ajax-loader").clone().attr("id", "").show());
+  $('#export-to-csv').click(function() {
+    $('#export-to-csv').parent().prepend(
+          $('#ajax-loader').clone().attr('id', '').show());
 
     setupAndStartExport({doCSVExport: 1});
   });
@@ -497,9 +527,10 @@ Hi!
 </div>
 
 <div class="bubble" id="friendlist">
-  <div id="remaining-friend-count">
-    <img src="/img/ajax-loader.gif"/>
+  <div id="filterfriends">
+    <input type="search" placeholder="Filter friends ..." />
   </div>
+  <div id="remaining-friend-count"></div>
   <ul id="friendlist"/>
 </div>
 

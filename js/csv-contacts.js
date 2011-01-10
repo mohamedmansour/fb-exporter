@@ -45,11 +45,12 @@ function csv_DoExport(requestedFriendsToImport) {
 
     csv_rows.push(csv_row);
 
-    chrome.tabs.sendRequest(work_tab_id,
-        {finishedProcessingFriend: true,
-         friend: friend,
-         success: 1,
-         message: "Added to CSV!"});
+    chrome.tabs.sendRequest(worker_id, {
+        finishedProcessingFriend: true,
+        friend: friend,
+        success: 1,
+        message: "Added to CSV!"
+    });
   });
 
   var s = csv_header.join(",") + "\n";

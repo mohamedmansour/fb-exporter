@@ -24,6 +24,20 @@ window.addEventListener('friendExported', function() {
   var transferDOM = document.getElementById('transfer-dom-area');
   friendsMap = JSON.parse(transferDOM.innerText);
 
+  // For testing, lets just view 2 users.
+  var i = 0;
+  var testMap = {};
+  $.each(friendsMap, function(key, value) {
+    if (i == 2) {
+      return false;
+    }
+    testMap[key] = value;
+    i++;
+  });
+  delete friendsMap;
+  friendsMap = testMap;
+  console.debug(friendsMap);
+  
   // Clean up since we no longer need this.
   $(transferDOM).remove();
   

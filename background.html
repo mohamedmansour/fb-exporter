@@ -46,15 +46,12 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
         gotInfoForFriend: request.relayInfoForFriend
     });
   }
-  else if (request.pissOffZuckerberg) {
-    chrome.tabs.sendRequest(fb_tab, {pissOffZuckerberg: 1});
-  }
   else if (request.doGmailExport) {
     google_StartExportWithFriends(request.requestedFriends);
   }
   else if (request.doCSVExport) {
     var csv_text = csv_DoExport(request.requestedFriends);
-    chrome.tabs.sendRequest(work_tab_id, {csvExportFinished:csv_text});
+    chrome.tabs.sendRequest(worker_id, { csvExportFinished: csv_text });
   }
   
 });

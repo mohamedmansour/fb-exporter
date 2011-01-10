@@ -12,7 +12,7 @@ var oauth = ChromeExOAuth.initBackgroundPage({
   'consumer_key' : 'anonymous',
   'consumer_secret' : 'anonymous',
   'scope' : GOOGLE_SCOPE,
-  'app_name' : 'Facebook Doesn\'t Own My Friends (Chrome Extension)'
+  'app_name' : 'Facebook Contact Exporter (Chrome Extension)'
 });
 var GROUPS_FEED = 'https://www.google.com/m8/feeds/groups/default/full';
 var CONTACTS_FEED = "https://www.google.com/m8/feeds/contacts/default/full";
@@ -38,17 +38,6 @@ function google_StartExportWithFriends(requestedFriendsToImport) {
   FUNCTION_QUEUE.push(google_EnsureContactGroupExists);
   FUNCTION_QUEUE.push(google_GetGmailContacts);
   FUNCTION_QUEUE.push(google_StartExportingRequestedContacts);
-
-  if (0) {
-    // Debugging code only, used to short-circuit the scraping from fb tab.
-    var friend = Object();
-    friend.name = "Jonathan Bogusman";
-    friend.email = ["xxxxxx@yahoo.co.il", "xxxxxx@gmail.com"];
-    friend.aims = ["bar", "baz"];
-    friend.websites = ["http://google.com"];
-    friend.fb = "facebook.com/foo";
-    REQUESTED_FRIENDS_TO_IMPORT = [friend];
-  }
 
   oauth.authorize(google_OAuthDidAuthorize);
 }
@@ -353,13 +342,14 @@ function google_AddFriendToGoogleContacts(friend) {
 
 function google_OnAddContact(text, xhr, friend) {
   // This script runs in the context of background.html, so using
-  // "work_tab_id" is valid.
+  // "worker_id" is valid.
   console.log(text);
-  chrome.tabs.sendRequest(work_tab_id,
-      {finishedProcessingFriend: true,
-       friend: friend,
-       success: 1,
-       message: "Added to your Google Contacts!"});
+  chrome.tabs.sendRequest(worker_id, {
+      finishedProcessingFriend: true,
+      friend: friend,
+      success: 1,
+      message: "Added to your Google Contacts!"
+  });
 }
 
 function google_StartExportingRequestedContacts() {
@@ -374,11 +364,12 @@ function google_StartExportingRequestedContacts() {
     if (!friend.email || friend.email.length == 0) {
       // The friend does not have an email address listed.  Avoid adding him to
       // Google Contacts altogether.
-      chrome.tabs.sendRequest(work_tab_id,
-          {finishedProcessingFriend: true,
-           friend: friend,
-           success: 0,
-           message: "Not added: Friend is missing at least one email address!"});
+      chrome.tabs.sendRequest(worker_id, {
+          finishedProcessingFriend: true,
+          friend: friend,
+          success: 0,
+          message: "Not added: Friend is missing at least one email address!"
+      });
     } else {
       friends_with_emails.push(friend);
     }
@@ -416,11 +407,12 @@ function google_StartExportingRequestedContacts() {
   // emails.  The remaining friends_with_emails contains only duplicate friends
   // that we don't intend to add, so notify the work tab.
   $.each(friends_with_emails, function(key, friend) {
-    chrome.tabs.sendRequest(work_tab_id,
-        {finishedProcessingFriend: true,
-         friend: friend,
-         success: 0,
-         message: "Not added: It looks like this friend is already in your Google Contacts!"});
+    chrome.tabs.sendRequest(worker_id, {
+        finishedProcessingFriend: true,
+        friend: friend,
+        success: 0,
+        message: "Not added: It looks like this friend is already in your Google Contacts!"
+    });
   });
 
   // Now we're ready to add the remaining, non-duplicate friends to google
