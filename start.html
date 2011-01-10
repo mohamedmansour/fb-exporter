@@ -1,179 +1,7 @@
 <html>
 <head>
 <title>Facebook Friend Exporter</title>
-
-<style type="text/css">
-
-body {
-  font-family: Verdana;
-  color: #fff;
-  background-color: #ccc;
-}
-
-.bubble {
-  background-color: #444;
-  margin: 15pt;
-  border: thick solid;
-  position: relative;
-  border-radius: 10px;
-  padding: 15pt;
-}
-
-p {
-  margin: 10pt;
-}
-
-.friend-row {
-  position: relative;
-}
-
-#friendlist {
-  padding-top: 30px;
-}
-
-#friendlist li {
-  display: inline-block;
-  position: relative;
-}
-
-#friendlist li span {
-  position: absolute;
-  bottom: 0;
-  left: 5px;
-  height: 20px;
-  width: 60px;
-  background-color: rgba(0,0,0,0.4);
-  border-radius: 10px;
-  font-size: 8px;
-  line-height: 20px;
-  text-align: center;
-  font-weight: bold;
-  display: none;
-}
-
-#friendlist li.processed span {
-  background-color: rgba(255,255,0,0.4);
-}
-
-#friendlist li.success span {
-  background-color: rgba(0,255,0,0.4);
-}
-
-#friendlist li.failed span {
-  background-color: rgba(255,0,0,0.4);
-}
-
-#friendlist li img {
-  width: 50px;
-  height: 50px;
-  margin: 5px;
-  border: 5px solid #444;
-}
-
-#friendlist li img:hover {
-  cursor:pointer;
-  border-color: #fff;
-  border-radius: 10px;
-}
-
-#friendlist li.processed img:hover {
-  border-color: #444;
-}
-
-.hilite {
-  color: #266A2E;
-}
-
-.tos-guarded {
-}
-
-#friendlist,  #step2, #step3, #step4 {
-  display: none;
-}
-
-#ajax-loader {
-  display: none;
-}
-
-#remaining-friend-count {
-  font-size: 11pt;
-  position: absolute;
-  display: none;
-  padding: 3pt;
-  top: 0px;
-  right: 0px;
-}
-
-.friend-detail {
-  font-size: 13pt;
-}
-
-.checkbox {
-  size: 18pt;
-  position: absolute;
-  top: 5px;
-  left: 5px;
-}
-
-.export-method {
-  font-size: 12pt;
-}
-
-.export-method input {
-  border: outset;
-  padding: 0pt;
-}
-
-.export-method input:active {
-  border: inset;
-}
-
-#csv-popup {
-  position: absolute;
-  background-color: gray;
-  top: 40px;
-  bottom: 40px;
-  right: 40px;
-  left: 40px;
-  padding: 12pt;
-  border: thick solid;
-}
-
-#csv-popup a {
-  position: absolute;
-  top: 0px;
-  right: 20px;
-}
-
-#csv-popup span {
-  position: absolute;
-  top: 0px;
-  left: 20px;
-}
-
-#csv-popup textarea {
-  position: absolute;
-  top: 30px;
-  left: 30px;
-  right: 30px;
-  bottom: 30px;
-
-  font-size: 10pt;
-}
-
-#filterfriends {
-  position: absolute;
-  top: 5px;
-  left: 30px;
-}
-
-#filterfriends input, #filterfriends input:focus {
-  padding: 2px;
-  outline: none;
-}
-
-</style>
-
+<link rel="stylesheet" type="text/css" href="/css/start.css">
 <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript">
 
@@ -443,98 +271,84 @@ $(document).ready(function() {
 </script>
 
 <body>
-
-<div class="bubble" id="step1">
-Hi!
-
-<p>Couple of questions for you.</p>
-
-<ol>
-  <li>Does Facebook own your friends?</li>
-  <li>Do you think Facebook owns the data about your friends, such as their 
-      email, their website, their IM name, etc. that they made public for you
-      to see?
-  </li>
-  <li>Do you think your Facebook friends would mind if you, oh, we don't know,
-      decided one day to email them, or visit their website? How about add them
-      to your address book on your phone?
-  </li>
-</ol>
-
-<p>
-  If you answered "no" to the above questions, we can help you get your friends'
-  contact info out of Facebook. We can export the info to your Google Contacts 
-  (GMail), among other things!
-</p>
-
-<p>
-  Finally, this extension is open source. You can fork it now on GitHub!
-  <a href="https://github.com/mohamedmansour/fb-exporter/">
-    https://github.com/mohamedmansour/fb-exporter
-  </a>
-</p>
-
-<p>
-  THIS CHROME EXTENSION IS NOT AFFILIATED WITH GOOGLE OR FACEBOOK. HERE IS A LINK
-  TO THE FACEBOOK <a href="http://www.facebook.com/terms.php">TERMS OF SERVICE</a>.
-</p>
-
-<p> 
-  <input type="checkbox" id="tos">I have read the Terms of Service.</a> 
-  <button class="tos-guarded continue1" disabled="true">Let's get started!</button>
-</p>
-
-<!--
-<a href="javascript:void(0);" id="gmail-stuff">GMAILGMAILGMAILGMAILGMAIL</a>
-<a href="javascript:void(0);" id="gmail-logout">LOGOUT LOGOUT LOGOUT LOGOUT </a>
--->
-
-</div>
-
-<div class="bubble" id="step2">
-  <p> Fetching friend list... done.  See below.</p>
-  <p> These are all the frends that will be exported, 
-      <button id="start-crunching">let's start!</button></p>
-</div>
-
-<div class="bubble" id="step3">
-  <p> Fetching friend details... this could take a while, especially if you're
-      really popular!</p>
-  <p> <span class="hilite">IMPORTANT:</span> Please don't touch your Facebook tab
-  until we're done, thanks!  If you really <strong>must</strong> have your
-  Facebook fix <em>right now</em>, <a target="_blank"
-  href="http://www.facebook.com">here you go (this will open in a new window)</a>.
-  </p>
-</div>
-
-<div class="bubble" id="step4">
-  <p>All done!  Please check the list below. Uncheck the friends you want to skip.</p>
-  <p>Now the fun part!  Pick an export button below, and we'll get started
-     copying your friend data there!</p>
-  <ul id="export-methods">
-    <li class="export-method">
-      <input type="image" src="/img/gmail-logo.jpg" id="export-to-gmail" width="60" />
-      This will log you into your GMail account, and import your Facebook friend data
-      into your Contacts.  We'll create a group in your GMail contacts called
-      <span class="hilite">"Imported from Facebook"</span> and we'll avoid
-      duplicating any existing contacts.
-    </li>
-    <li class="export-method">
-      <input type="image" src="/img/csv-icon.gif" id="export-to-csv" />
-      This will export your contacts as a CSV file.
-    </li>
-  </ul>
-</div>
-
-<div class="bubble" id="friendlist">
-  <div id="filterfriends">
-    <input type="search" placeholder="Filter friends ..." />
+  <div class="bubble" id="step1">
+    Hi!
+    <p>Couple of questions for you.</p>
+    <ol>
+      <li>Does Facebook own your friends?</li>
+      <li>Do you think Facebook owns the data about your friends, such as their 
+          email, their website, their IM name, etc. that they made public for you
+          to see?
+      </li>
+      <li>Do you think your Facebook friends would mind if you, oh, we don't know,
+          decided one day to email them, or visit their website? How about add them
+          to your address book on your phone?
+      </li>
+    </ol>
+    <p>
+      If you answered "no" to the above questions, we can help you get your friends'
+      contact info out of Facebook. We can export the info to your Google Contacts 
+      (GMail), among other things!
+    </p>
+    <p>
+      Finally, this extension is open source. You can fork it now on GitHub!
+      <a href="https://github.com/mohamedmansour/fb-exporter/">
+        https://github.com/mohamedmansour/fb-exporter
+      </a>
+    </p>
+    <p>
+      THIS CHROME EXTENSION IS NOT AFFILIATED WITH GOOGLE OR FACEBOOK. HERE IS A LINK
+      TO THE FACEBOOK <a href="http://www.facebook.com/terms.php">TERMS OF SERVICE</a>.
+    </p>
+    <p> 
+      <input type="checkbox" id="tos">I have read the Terms of Service.</a> 
+      <button class="tos-guarded continue1" disabled="true">Let's get started!</button>
+    </p>
   </div>
-  <div id="remaining-friend-count"></div>
-  <ul id="friendlist"/>
-</div>
 
-<img id="ajax-loader" src="/img/ajax-loader.gif"/>
+  <div class="bubble" id="step2">
+    <p> Fetching friend list... done.  See below.</p>
+    <p> These are all the frends that will be exported, 
+        <button id="start-crunching">let's start!</button></p>
+  </div>
 
+  <div class="bubble" id="step3">
+    <p> Fetching friend details... this could take a while, especially if you're
+        really popular!</p>
+    <p> <span class="hilite">IMPORTANT:</span> Please don't touch your Facebook tab
+    until we're done, thanks!  If you really <strong>must</strong> have your
+    Facebook fix <em>right now</em>, <a target="_blank"
+    href="http://www.facebook.com">here you go (this will open in a new window)</a>.
+    </p>
+  </div>
+
+  <div class="bubble" id="step4">
+    <p>All done!  Please check the list below. Uncheck the friends you want to skip.</p>
+    <p>Now the fun part!  Pick an export button below, and we'll get started
+       copying your friend data there!</p>
+    <ul id="export-methods">
+      <li class="export-method">
+        <input type="image" src="/img/gmail-logo.jpg" id="export-to-gmail" width="60" />
+        This will log you into your GMail account, and import your Facebook friend data
+        into your Contacts.  We'll create a group in your GMail contacts called
+        <span class="hilite">"Imported from Facebook"</span> and we'll avoid
+        duplicating any existing contacts.
+      </li>
+      <li class="export-method">
+        <input type="image" src="/img/csv-icon.gif" id="export-to-csv" />
+        This will export your contacts as a CSV file.
+      </li>
+    </ul>
+  </div>
+
+  <div class="bubble" id="friendlist">
+    <div id="filterfriends">
+      <input type="search" placeholder="Filter friends ..." />
+    </div>
+    <div id="remaining-friend-count"></div>
+    <ul id="friendlist"/>
+  </div>
+
+  <img id="ajax-loader" src="/img/ajax-loader.gif"/>
 </body>
 </html>

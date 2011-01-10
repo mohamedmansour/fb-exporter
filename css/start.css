@@ -1,0 +1,168 @@
+
+body {
+  font-family: Verdana;
+  color: #fff;
+  background-color: #ccc;
+}
+
+.bubble {
+  background-color: #444;
+  margin: 15pt;
+  border: thick solid;
+  position: relative;
+  border-radius: 10px;
+  padding: 15pt;
+}
+
+p {
+  margin: 10pt;
+}
+
+.friend-row {
+  position: relative;
+}
+
+#friendlist {
+  padding-top: 30px;
+}
+
+#friendlist li {
+  display: inline-block;
+  position: relative;
+}
+
+#friendlist li span {
+  position: absolute;
+  bottom: 0;
+  left: 5px;
+  height: 20px;
+  width: 60px;
+  background-color: rgba(0,0,0,0.4);
+  border-radius: 10px;
+  font-size: 8px;
+  line-height: 20px;
+  text-align: center;
+  font-weight: bold;
+  display: none;
+}
+
+#friendlist li.processed span {
+  background-color: rgba(255,255,0,0.4);
+}
+
+#friendlist li.success span {
+  background-color: rgba(0,255,0,0.4);
+}
+
+#friendlist li.failed span {
+  background-color: rgba(255,0,0,0.4);
+}
+
+#friendlist li img {
+  width: 50px;
+  height: 50px;
+  margin: 5px;
+  border: 5px solid #444;
+}
+
+#friendlist li img:hover {
+  cursor:pointer;
+  border-color: #fff;
+  border-radius: 10px;
+}
+
+#friendlist li.processed img:hover {
+  border-color: #444;
+}
+
+.hilite {
+  color: #266A2E;
+}
+
+.tos-guarded {
+}
+
+#friendlist,  #step2, #step3, #step4 {
+  display: none;
+}
+
+#ajax-loader {
+  display: none;
+}
+
+#remaining-friend-count {
+  font-size: 11pt;
+  position: absolute;
+  display: none;
+  padding: 3pt;
+  top: 0px;
+  right: 0px;
+}
+
+.friend-detail {
+  font-size: 13pt;
+}
+
+.checkbox {
+  size: 18pt;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+.export-method {
+  font-size: 12pt;
+}
+
+.export-method input {
+  border: outset;
+  padding: 0pt;
+}
+
+.export-method input:active {
+  border: inset;
+}
+
+#csv-popup {
+  position: absolute;
+  background-color: gray;
+  top: 40px;
+  bottom: 40px;
+  right: 40px;
+  left: 40px;
+  padding: 12pt;
+  border: thick solid;
+}
+
+#csv-popup a {
+  position: absolute;
+  top: 0px;
+  right: 20px;
+}
+
+#csv-popup span {
+  position: absolute;
+  top: 0px;
+  left: 20px;
+}
+
+#csv-popup textarea {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+
+  font-size: 10pt;
+}
+
+#filterfriends {
+  position: absolute;
+  top: 5px;
+  left: 30px;
+}
+
+#filterfriends input, #filterfriends input:focus {
+  padding: 2px;
+  outline: none;
+}
