@@ -20,6 +20,9 @@ var facebook_id = -1;
 var worker_id = -1;
 var db = new FriendDB();
 
+// Start it globally.
+db.open();
+
 // Initialize database.
 var first_install = localStorage['first_install'];
 if (typeof key == 'undefined') {
@@ -27,9 +30,6 @@ if (typeof key == 'undefined') {
 } else {
   localStorage['first_install'] = 1;
 }
-
-// Start it globally.
-db.open();
 
 /**
 * Open a singleton page, which means, if a page already exists, it just selects it.
