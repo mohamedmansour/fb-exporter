@@ -38,7 +38,7 @@ FriendDB.prototype.createTable = function() {
  * Adds a |friend| to the database, the contents gets serialized to String.
  * Current time is tracked as well.
  */
-FriendDB.prototype.addFriend = function(friend, onSuccess) {
+FriendDB.prototype.persistFriend = function(friend, onSuccess) {
   var ts = new Date();
   var data = JSON.stringify(friend);
   this.db.transaction(function(tx) {
@@ -48,8 +48,8 @@ FriendDB.prototype.addFriend = function(friend, onSuccess) {
 };
 
 /**
- * Retrieves a row from the table given |id| the result goes to |respawn|. This
- * is an asynchronous action.
+ * Retrieves a row from the table given |id|. The result goes to |response|. 
+ * This is an asynchronous action.
  */
 FriendDB.prototype.getFriend = function(id, response) {
   this.db.transaction(function(tx) {
@@ -59,6 +59,19 @@ FriendDB.prototype.getFriend = function(id, response) {
             response(JSON.parse(rs.rows.item(0).data));
           }
         }, this.onError
+    );
+  });
+};
+
+/**
+ * Update the friend object.
+ */
+FriendDB.prototype.updateFriend = function(friend) {
+  var ts = new Date();
+  var data = JSON.stringify(friend);
+  this.db.transaction(function(tx) {
+    tx.executeSql('UPDATE friend SET data = ?, ts = ? WHERE id = ?',
+        [data, ts, friend.id], null,  this.onError
     );
   });
 };
