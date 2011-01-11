@@ -1,3 +1,4 @@
+var bkg = chrome.extension.getBackgroundPage();
 var total_visible_friends = 0;
 var friends_remaining_count = 0;
 
@@ -15,7 +16,7 @@ function renderFriendList() {
   total_visible_friends = 0;
   
   // The friends list is stored in the background page. Lets get it then render.
-  chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+  chrome.tabs.sendRequest(bkg.facebook_id,
                           {getFriendsMap: 1}, function(response) {
     $.each(response.data, function(key, value) {
       total_visible_friends++;
@@ -65,7 +66,7 @@ function startCrunching() {
   });
   
   // Start request, let the background page start the long long long process!
-  chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+  chrome.tabs.sendRequest(bkg.facebook_id,
                           {startExportFriendData: 1});
 }
 
@@ -137,7 +138,7 @@ function gotInfoForFriend(friend) {
     // Remove the ajax loading gif.
     $('#export-methods img').remove();
 
-    //chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+    //chrome.tabs.sendRequest(bkg.facebook_id,
     //                        {hideTopBanner: 1});
 
     $('#remaining-friend-count').hide();
@@ -233,7 +234,7 @@ $(document).ready(function() {
           // Remove the ajax loading gif.
           $('#export-methods img').remove();
 
-          //chrome.tabs.sendRequest(chrome.extension.getBackgroundPage().facebook_id,
+          //chrome.tabs.sendRequest(bkg.facebook_id,
           //                        {hideTopBanner: 1});
         }
       }
