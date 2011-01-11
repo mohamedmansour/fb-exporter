@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html>
+
+<!-- Web SQL Database to store friends.. -->
+<script type="text/javascript" src="/js/fb-database.js"></script>
+
 <!-- For OAuth google authentication. -->
 <script type="text/javascript" src="/js/chrome_ex_oauthsimple.js"></script>
 <script type="text/javascript" src="/js/chrome_ex_oauth.js"></script>
@@ -14,6 +18,18 @@
 
 var facebook_id = -1;
 var worker_id = -1;
+var db = new FriendDB();
+
+// Initialize database.
+var first_install = localStorage['first_install'];
+if (typeof key == 'undefined') {
+  db.createTable();
+} else {
+  localStorage['first_install'] = 1;
+}
+
+// Start it globally.
+db.open();
 
 /**
 * Open a singleton page, which means, if a page already exists, it just selects it.
