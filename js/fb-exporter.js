@@ -1,3 +1,6 @@
+// Polling time.
+var PROFILE_POLL_DELAY=2000;
+
 // Communicate to both worlds, extension and website.
 var exportEvent = document.createEvent('Event');
 exportEvent.initEvent('friendExported', true, true);
@@ -25,19 +28,19 @@ window.addEventListener('friendExported', function() {
   friendsMap = JSON.parse(transferDOM.innerText);
 
   // For testing, lets just view 2 users.
-  var i = 0;
-  var testMap = {};
-  $.each(friendsMap, function(key, value) {
-    if (i == 2) {
-      return false;
-    }
-    testMap[key] = value;
-    i++;
-  });
-  delete friendsMap;
-  friendsMap = testMap;
-  console.debug(friendsMap);
-  
+  if (0) {
+    var i = 0;
+    var testMap = {};
+    $.each(friendsMap, function(key, value) {
+      if (i == 2) {
+        return false;
+      }
+      testMap[key] = value;
+      i++;
+    });
+    delete friendsMap;
+    friendsMap = testMap;
+  }
   // Clean up since we no longer need this.
   $(transferDOM).remove();
   
@@ -213,12 +216,12 @@ function renderExportFriendsLink() {
  */
 function friendInfoIframeLoaded() {
   var iframe = this;
-  
+    
   // We can't access the iframe elements directly, because they probably have
   // not loaded yet.  The contact information fields are appended dynamically.
   // Instead, we use setTimeout to give all the pagelets a chance to load.
-  setTimeout(function(iframe) {
-    var friend_id = iframe.src.substring(iframe.src.lastIndexOf('#') + 1)
+  setTimeout(function(iframe) {    
+    var friend_id = iframe.src.substring(iframe.src.lastIndexOf('#') + 1);
     var friend_name = friendsMap[friend_id].text;
     
     // NOTE TO FUTURE SELF: If this extension breaks, it's probably because the
@@ -257,7 +260,7 @@ function friendInfoIframeLoaded() {
 
     // Clean up iframe. All extraction successful.
     $(iframe).remove();
-  }, 3000, this);
+  }, PROFILE_POLL_DELAY, this);
 }
 
 /**
@@ -277,12 +280,13 @@ function startExportFriendData() {
     href += 'v=info#' + key;
 
     // Delay load each friend.
+    var delay = i * 11000 + Math.random() * 1000;
     setTimeout(function() {
       var iframe = document.createElement('iframe');
       $(iframe).attr('src', href).attr('class', 'fb-exporter');
       $(document.body).prepend(iframe);
       $(iframe).load(friendInfoIframeLoaded);
-    }, i * 11000 + Math.random() * 1000);
+    }, delay);
 
     i++;
   });
