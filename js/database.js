@@ -56,7 +56,10 @@ FriendDB.prototype.getFriend = function(id, response) {
     tx.executeSql('SELECT data FROM friend WHERE id = ?', [id],
         function (tx, rs) {
           if (rs.rows.length != 0) {
-            response(JSON.parse(rs.rows.item(0).data));
+            response({status: true, data: JSON.parse(rs.rows.item(0).data)});
+          }
+          else {
+            response({status: false});
           }
         }, this.onError
     );
