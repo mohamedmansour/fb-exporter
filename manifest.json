@@ -1,7 +1,7 @@
 {
    "background_page": "background.html",
    "content_scripts": [ {
-      "js": [ "/js/jquery-1.4.2.min.js", "/js/fb-exporter.js" ],
+      "js": [ "/js/lib/jquery-1.4.2.min.js", "/js/content_script.js" ],
       "matches": [ 
         "http://*.facebook.com/*"
       ],
