@@ -49,12 +49,15 @@ function openSingletonPage(url) {
   });
 }
 
+function onFriendFinishExport(friend) {
+}
+
 // Extension request listener.
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   if (request.switchToWorkerTab) {
     facebook_id = sender.tab.id;
     console.log('switchToWorkerTab');
-    openSingletonPage(chrome.extension.getURL('start.html'));
+    openSingletonPage(chrome.extension.getURL('controller.html'));
   }
   else if (request.relayInfoForFriend) {
     console.log('relayInfoForFriend');
@@ -66,8 +69,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
     google_StartExportWithFriends(request.requestedFriends);
   }
   else if (request.doCSVExport) {
-    var csv_text = csv_DoExport(request.requestedFriends);
-    chrome.tabs.sendRequest(worker_id, { csvExportFinished: csv_text });
+    var csv = new CSVExporter(request.requestedFriends);
+    csv.process(onFriendFinishExport);
+    chrome.tabs.sendRequest(worker_id, { csvExportFinished: csv.getDump() });
   }
   
 });
