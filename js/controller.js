@@ -15,22 +15,31 @@ function renderFriendList() {
   // we have, and reused for step 3.
   total_visible_friends = 0;
   
-  // The friends list is stored in the background page. Lets get it then render.
   chrome.tabs.sendRequest(bkg.facebook_id,
                           {getFriendsMap: 1}, function(response) {
     $.each(response.data, function(key, value) {
-      total_visible_friends++;
-      var li = document.createElement('li');
-      $(li).addClass('friend-row')
-           .attr('id', key)
-           .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                 '<span>PENDING</span>')
-           .click(
-             function() {
-                chrome.tabs.create({url: 'http://facebook.com' + value.path });
-             }
-           );
-      $('#friendlist').append(li);
+      bkg.db.getFriend(key, function(result) {
+        total_visible_friends++;
+        
+        // Create the list friend item, but first decide if its cached or not.
+        var li = document.createElement('li');
+        $(li).addClass('friend-row')
+             .attr('id', key)
+             .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
+                   '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
+             .click(
+               function() {
+                  chrome.tabs.create({url: 'http://facebook.com' + value.path });
+               }
+             );
+        // When a friend is found, that means they are cached. Inform facebook.
+        if (result.status) {
+          $(li).addClass('cached');
+          console.log('CACHED FRIEND!', result.data.id)
+          chrome.tabs.sendRequest(bkg.facebook_id, ({cached: true, data: result.data}));
+        }
+        $('#friendlist').append(li);
+      });
     });
 
     // Check if we have any friends.
@@ -60,9 +69,11 @@ function startCrunching() {
 
   $('#remaining-friend-count').text(friends_remaining_count + ' remaining');
 
-  // Show pending for each element.
+  // Show pending for each element that was ready.
   $.each(document.querySelectorAll('#friendlist li span'), function(key, value) {
-    $(value).show();
+    if ($(value).text() == 'READY') {
+      $(value).text('PENDING');
+    }
   });
   
   // Start request, let the background page start the long long long process!
@@ -82,10 +93,17 @@ function startCrunching() {
  *                        - gtalks: Google Talk address.
  */
 function gotInfoForFriend(friend) {
+  var success = true;
+  
+  // If the email is empty
+  if (friend.email.length == 1 && friend.email[0] == '') {
+    success = false;
+  }
+  
   console.log(friend.name);
   var item = $('#' + friend.id);
-  item.find('span').text('PROCESSED');
-  item.addClass('processed');
+  item.find('span').text(success ? 'PROCESSED' : 'FAILED');
+  item.addClass(success ? 'processed' : 'failed');
   
   var checkbox = document.createElement('input');
   $(checkbox).attr('type', 'checkbox')
@@ -143,6 +161,8 @@ function gotInfoForFriend(friend) {
 
     $('#remaining-friend-count').hide();
   }
+  
+  return success;
 }
 
 /**
@@ -189,8 +209,8 @@ $(document).ready(function() {
   chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse) {
       if (request.gotInfoForFriend) {
-        gotInfoForFriend(request.gotInfoForFriend);
-        sendResponse({OK: 1});
+        var response = gotInfoForFriend(request.gotInfoForFriend);
+        sendResponse({OK: response});
       }
       if (request.csvExportFinished) {
         var csv_popup = $("<div/>");

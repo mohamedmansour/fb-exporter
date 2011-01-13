@@ -19,6 +19,7 @@
 var facebook_id = -1;
 var worker_id = -1;
 var db = new FriendDB();
+var error_occured = false;
 
 // Start it globally.
 db.open();
@@ -49,7 +50,33 @@ function openSingletonPage(url) {
   });
 }
 
-function onFriendFinishExport(friend) {
+/**
+ * Callback when friend finished exporting.
+ */
+function onFriendFinishExport(status) {
+  chrome.tabs.sendRequest(worker_id, {
+      finishedProcessingFriend: status.finishedProcessingFriend,
+      friend: status.friend,
+      success: status.success,
+      message: status.message
+  });
+}
+
+/**
+ * Callback when friend finished relayed.
+ */
+function onFriendRelay(friend) {
+  var payload = { gotInfoForFriend: friend };
+  chrome.tabs.sendRequest(worker_id, payload, function (response) {
+    if (!response.OK) {
+      error_occured = true;
+    }
+    else {
+      db.persistFriend(friend, function (response) {
+        console.debug('persisted!');
+      });
+    }
+  });
 }
 
 // Extension request listener.
@@ -61,12 +88,11 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   }
   else if (request.relayInfoForFriend) {
     console.log('relayInfoForFriend');
-    chrome.tabs.sendRequest(worker_id, {
-        gotInfoForFriend: request.relayInfoForFriend
-    });
+    onFriendRelay(request.relayInfoForFriend);
   }
   else if (request.doGmailExport) {
-    google_StartExportWithFriends(request.requestedFriends);
+    var gmail = new GoogleExport(request.requestedFriends)
+    gmail.process(onFriendFinishExport);
   }
   else if (request.doCSVExport) {
     var csv = new CSVExporter(request.requestedFriends);

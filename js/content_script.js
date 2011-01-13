@@ -7,7 +7,8 @@ exportEvent.initEvent('friendExported', true, true);
 
 // Main friend map which was retrieved by the website.
 var friendsMap = {};    
-    
+var cachedMap = {};
+
 // Just draw the export friends link on the top next to the other links.
 renderExportFriendsLink();
 
@@ -18,6 +19,10 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   }
   else if (request.getFriendsMap) {
     sendResponse({data: friendsMap});
+  }
+  else if (request.cached) {
+    console.log('cache recieved ', request.data);
+    cachedMap[request.data.id] = request.data;
   }
 });
 
@@ -271,23 +276,30 @@ function startExportFriendData() {
   var i = 0;
   // Iterate through each friend by key[value]. 
   $.each(friendsMap, function(key, value) {
-    // Figure out the proper info page, this makes sure to support both
-    // profile name pages with (unique names) or just profile id pages
-    // (numbers). As well, append the ID so we can uniquely identify each page
-    // request with their ID being fetched..
-    var href = 'http://www.facebook.com' + value.path;
-    href.match('\\?') ? href += '&' : href += '?';
-    href += 'v=info#' + key;
+    // If the item is cached, no need to refetch it, just relay the information.
+    if (cachedMap[key]) {
+      console.log('Cache received, no need to grab it again.');
+      chrome.extension.sendRequest({relayInfoForFriend: cachedMap[key]});
+    }
+    else {
+      // Figure out the proper info page, this makes sure to support both
+      // profile name pages with (unique names) or just profile id pages
+      // (numbers). As well, append the ID so we can uniquely identify each page
+      // request with their ID being fetched..
+      var href = 'http://www.facebook.com' + value.path;
+      href.match('\\?') ? href += '&' : href += '?';
+      href += 'v=info#' + key;
 
-    // Delay load each friend.
-    var delay = i * 11000 + Math.random() * 1000;
-    setTimeout(function() {
-      var iframe = document.createElement('iframe');
-      $(iframe).attr('src', href).attr('class', 'fb-exporter');
-      $(document.body).prepend(iframe);
-      $(iframe).load(friendInfoIframeLoaded);
-    }, delay);
+      // Delay load each friend.
+      var delay = i * 11000 + Math.random() * 1000;
+      setTimeout(function() {
+        var iframe = document.createElement('iframe');
+        $(iframe).attr('src', href).attr('class', 'fb-exporter');
+        $(document.body).prepend(iframe);
+        $(iframe).load(friendInfoIframeLoaded);
+      }, delay);
 
-    i++;
+      i++;
+    }
   });
 }

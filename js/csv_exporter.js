@@ -17,25 +17,24 @@ CSVExporter = function(friends) {
  */
 CSVExporter.prototype.process = function(callback) {
   var csv_rows = [];
-  var that = this;
   
-  $.each(this.friends, function(key, friend) {
+  $(this).each(this.friends, function(key, friend) {
     var csv_row = [];
     csv_row.push(friend.name);
 
     for (i = 0; i < 3; i++){
-      that.addColumn_(csv_row, friend.email[i]);
+      $(this).addColumn_(csv_row, friend.email[i]);
     }
 
     for (i = 0; i < 3; i++){
-      that.addColumn_(csv_row, friend.aims[i]);
+      $(this).addColumn_(csv_row, friend.aims[i]);
     }
 
     for (i = 0; i < 3; i++){
-      that.addColumn_(csv_row, friend.websites[i]);
+      $(this).addColumn_(csv_row, friend.websites[i]);
     }
     
-    that.addColumn_(csv_row, friend.fb);
+    $(this).addColumn_(csv_row, friend.fb);
 
     csv_rows.push(csv_row);
 
