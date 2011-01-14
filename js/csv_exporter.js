@@ -17,24 +17,26 @@ CSVExporter = function(friends) {
  */
 CSVExporter.prototype.process = function(callback) {
   var csv_rows = [];
+  var i = 0;
   
-  $(this).each(this.friends, function(key, friend) {
+  for (var j = 0; j < this.friends.length; j++) {
+    var friend = this.friends[j];
     var csv_row = [];
     csv_row.push(friend.name);
 
     for (i = 0; i < 3; i++){
-      $(this).addColumn_(csv_row, friend.email[i]);
+      this.addColumn_(csv_row, friend.email[i]);
     }
 
     for (i = 0; i < 3; i++){
-      $(this).addColumn_(csv_row, friend.aims[i]);
+      this.addColumn_(csv_row, friend.aims[i]);
     }
 
     for (i = 0; i < 3; i++){
-      $(this).addColumn_(csv_row, friend.websites[i]);
+      this.addColumn_(csv_row, friend.websites[i]);
     }
     
-    $(this).addColumn_(csv_row, friend.fb);
+    this.addColumn_(csv_row, friend.fb);
 
     csv_rows.push(csv_row);
 
@@ -45,7 +47,7 @@ CSVExporter.prototype.process = function(callback) {
         success: 1,
         message: "Added to CSV!"
     });
-  });
+  }
 
   this.dump = this.header.join(',') + '\n';
 
