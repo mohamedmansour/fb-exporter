@@ -4,6 +4,14 @@ body {
   color: #fff;
   background-color: #ccc;
 }
+::selection { 
+  background:#FF5E99; 
+  color:#fff; 
+  text-shadow: none; 
+}
+a { 
+ color: #FF5E99;
+}
 .bubble {
   background-color: #444;
   margin: 15pt;
@@ -12,7 +20,7 @@ body {
   border-radius: 10px;
   padding: 15pt;
 }
-
+ 
 p {
   margin: 10pt;
 }
@@ -27,6 +35,8 @@ p {
   border: 1px solid #FFE600;
   display: none;
   margin: 10px 0px;
+  padding: 0px 10px;
+  box-shadow: 0 0 5px 5px #333;
 }
 
 #friendlist {

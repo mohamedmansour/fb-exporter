@@ -242,6 +242,8 @@ $(document).ready(function() {
       var item = $('#' + request.friend.id);
       var status_text = request.success ? 'success' : 'failed';
       item.removeClass('starting');
+      item.removeClass('processed');
+      item.removeClass('cached');
       item.find('span').text(status_text.toUpperCase());
       item.addClass(status_text);
       
