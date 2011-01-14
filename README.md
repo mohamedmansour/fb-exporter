@@ -1,6 +1,8 @@
 Facebook Exporter Contact Exporter
 ==================================
 
+![Screenshot of the Chrome Extension](https://github.com/mohamedmansour/fb-exporter/raw/master/exporter.png)
+
 Forked from http://code.google.com/p/fb-exporter/
 
 Your friends on Facebook made their information public to you, such as their 
