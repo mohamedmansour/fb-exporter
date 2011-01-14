@@ -4,7 +4,6 @@ body {
   color: #fff;
   background-color: #ccc;
 }
-
 .bubble {
   background-color: #444;
   margin: 15pt;
@@ -20,6 +19,14 @@ p {
 
 .friend-row {
   position: relative;
+}
+
+#note {
+  background-color: #FBEC5D;
+  color: #615E3F;
+  border: 1px solid #FFE600;
+  display: none;
+  margin: 10px 0px;
 }
 
 #friendlist {
@@ -59,6 +66,10 @@ p {
 
 #friendlist li.cached span {
   background-color: rgba(255,0,255,0.4);
+}
+
+#friendlist li.starting span { 
+  background-color: rgba(255,140,0,0.4);
 }
 
 #friendlist li img {

@@ -35,7 +35,6 @@ function renderFriendList() {
         // When a friend is found, that means they are cached. Inform facebook.
         if (result.status) {
           $(li).addClass('cached');
-          console.log('CACHED FRIEND!', result.data.id)
           chrome.tabs.sendRequest(bkg.facebook_id, ({cached: true, data: result.data}));
         }
         $('#friendlist').append(li);
@@ -99,10 +98,9 @@ function gotInfoForFriend(friend) {
   if (friend.email.length == 1 && friend.email[0] == '') {
     success = false;
   }
-  
-  console.log(friend.name);
   var item = $('#' + friend.id);
   item.find('span').text(success ? 'PROCESSED' : 'FAILED');
+  item.removeClass('starting');
   item.addClass(success ? 'processed' : 'failed');
   
   var checkbox = document.createElement('input');
@@ -121,7 +119,6 @@ function gotInfoForFriend(friend) {
   $(detail_ul).addClass('friend-detail');
   // item.append($(detail_ul));
 
-  console.log(friend);
   $.each(friend, function(key, value) {
     if (key == 'name') {
       // No need to show name, since it's part of the parent li.
@@ -148,23 +145,26 @@ function gotInfoForFriend(friend) {
   $('#remaining-friend-count').text(friends_remaining_count + ' remaining');
 
   if (friends_remaining_count == 0) {
-    // All of the friend info for the visible subset of friends has been
-    // received.  Show specific export buttons now.
-    $('#step3').hide();
-    $('#step4').show();
-
-    // Remove the ajax loading gif.
-    $('#export-methods img').remove();
-
-    //chrome.tabs.sendRequest(bkg.facebook_id,
-    //                        {hideTopBanner: 1});
-
-    $('#remaining-friend-count').hide();
+    setupExportScreen();
   }
   
   return success;
 }
 
+function setupExportScreen() {
+  // All of the friend info for the visible subset of friends has been
+  // received.  Show specific export buttons now.
+  $('#step3').hide();
+  $('#step4').show();
+
+  // Remove the ajax loading gif.
+  $('#export-methods img').remove();
+
+  //chrome.tabs.sendRequest(bkg.facebook_id,
+  //                        {hideTopBanner: 1});
+
+  $('#remaining-friend-count').hide();
+}
 /**
  * Setup a list of the visible, checked friends that we want to send to 
  * export.
@@ -206,59 +206,68 @@ $(document).ready(function() {
     }
   });
 
-  chrome.extension.onRequest.addListener(
-    function(request, sender, sendResponse) {
-      if (request.gotInfoForFriend) {
-        var response = gotInfoForFriend(request.gotInfoForFriend);
-        sendResponse({OK: response});
+  chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    if (request.gotInfoForFriend) {
+      var response = gotInfoForFriend(request.gotInfoForFriend);
+      sendResponse({OK: response});
+    }
+    else if (request.csvExportFinished) {
+      var csv_popup = $("<div/>");
+      $(csv_popup).attr("id", "csv-popup");
+
+      var textarea = $("<textarea/>");
+      $(textarea).text(request.csvExportFinished);
+
+      var a = $("<a/>").attr("href", "javascript:void(0);")
+                       .text("close")
+                       .click(function() {
+        $("#csv-popup").remove();
+      });
+
+      var info = $("<span/>").text("Here is your CSV.  Copy and save it somewhere safe.");
+
+      $(csv_popup).append(info);
+      $(csv_popup).append(a);
+      $(csv_popup).append(textarea);
+
+      $(document.body).append(csv_popup);
+    }
+    else if (request.finishedProcessingFriend) {
+      // The export finished for this contact.  Update the list, based
+      // on the success status, or show the error message.
+      console.log('finishedProcessingFriend ', request.friend.name);
+      console.log('finishedProcessingFriend ', request.success);
+      console.log('finishedProcessingFriend ', request.message);
+
+      var item = $('#' + request.friend.id);
+      var status_text = request.success ? 'success' : 'failed';
+      item.removeClass('starting');
+      item.find('span').text(status_text.toUpperCase());
+      item.addClass(status_text);
+      
+      friends_remaining_count -= 1;
+      $('#remaining-friend-count').show().text(
+          friends_remaining_count + ' remaining');
+
+      if (friends_remaining_count == 0) {
+        // Remove the ajax loading gif.
+        $('#export-methods img').remove();
+
+        //chrome.tabs.sendRequest(bkg.facebook_id,
+        //                        {hideTopBanner: 1});
       }
-      if (request.csvExportFinished) {
-        var csv_popup = $("<div/>");
-        $(csv_popup).attr("id", "csv-popup");
-
-        var textarea = $("<textarea/>");
-        $(textarea).text(request.csvExportFinished);
-
-        var a = $("<a/>").attr("href", "javascript:void(0);")
-                         .text("close")
-                         .click(function() {
-          $("#csv-popup").remove();
-        });
-
-        var info = $("<span/>").text("Here is your CSV.  Copy and save it somewhere safe.");
-
-        $(csv_popup).append(info);
-        $(csv_popup).append(a);
-        $(csv_popup).append(textarea);
-
-        $(document.body).append(csv_popup);
-      }
-      if (request.finishedProcessingFriend) {
-        // The export finished for this contact.  Update the list, based
-        // on the success status, or show the error message.
-        console.log('finishedProcessingFriend ', request.friend.name);
-        console.log('finishedProcessingFriend ', request.success);
-        console.log('finishedProcessingFriend ', request.message);
-
-        var item = $('#' + request.friend.id);
-        var status_text = request.success ? 'success' : 'failed';
-        item.removeClass('processed');
-        item.find('span').text(status_text.toUpperCase());
-        item.addClass(status_text);
-        
-        friends_remaining_count -= 1;
-        $('#remaining-friend-count').show().text(
-            friends_remaining_count + ' remaining');
-
-        if (friends_remaining_count == 0) {
-          // Remove the ajax loading gif.
-          $('#export-methods img').remove();
-
-          //chrome.tabs.sendRequest(bkg.facebook_id,
-          //                        {hideTopBanner: 1});
-        }
-      }
-    });
+    }
+    else if (request.facebookError) {
+      $('#note').show();
+      setupExportScreen();
+    }
+    else if (request.friendExtractionStarted) {
+      var item = $('#' + request.friendExtractionStarted);
+      item.removeClass('processed');
+      item.addClass('starting');
+      item.find('span').text('STARTING');
+    }
+  });
 
   $('.continue1').click(renderFriendList);
 

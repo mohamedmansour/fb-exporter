@@ -24,6 +24,11 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
     console.log('cache recieved ', request.data);
     cachedMap[request.data.id] = request.data;
   }
+  else if (request.facebookError) {
+    // Reload the content script so that the script will stop. Better than
+    // managing all the spawned timers.
+    window.location.reload(); 
+  }
 });
 
 // Listen on the real DOM requests to check if friend has been exported.
@@ -293,6 +298,7 @@ function startExportFriendData() {
       // Delay load each friend.
       var delay = i * 11000 + Math.random() * 1000;
       setTimeout(function() {
+        chrome.extension.sendRequest({friendExtractionStarted: key});
         var iframe = document.createElement('iframe');
         $(iframe).attr('src', href).attr('class', 'fb-exporter');
         $(document.body).prepend(iframe);

@@ -70,10 +70,12 @@ function onFriendRelay(friend) {
   chrome.tabs.sendRequest(worker_id, payload, function (response) {
     if (!response.OK) {
       error_occured = true;
+      chrome.tabs.sendRequest(facebook_id, { facebookError: 1 });
+      chrome.tabs.sendRequest(worker_id, { facebookError: 1 });
     }
     else {
       db.persistFriend(friend, function (response) {
-        console.debug('persisted!');
+        //console.debug('persisted!');
       });
     }
   });
@@ -83,11 +85,9 @@ function onFriendRelay(friend) {
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   if (request.switchToWorkerTab) {
     facebook_id = sender.tab.id;
-    console.log('switchToWorkerTab');
     openSingletonPage(chrome.extension.getURL('controller.html'));
   }
   else if (request.relayInfoForFriend) {
-    console.log('relayInfoForFriend');
     onFriendRelay(request.relayInfoForFriend);
   }
   else if (request.doGmailExport) {
@@ -99,7 +99,6 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
     csv.process(onFriendFinishExport);
     chrome.tabs.sendRequest(worker_id, { csvExportFinished: csv.getDump() });
   }
-  
 });
 </script>
 </html>
