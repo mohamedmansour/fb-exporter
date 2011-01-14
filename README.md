@@ -58,6 +58,7 @@ speed it up by doing a single query, but I wanted to release this quickly.
 - Cannot delete cache at this time. I will add a button in a later release so 
 you can delete it and refresh the internal cache.
 
+- Filtering friends doesn't work yet.
 
 Facebook
 -------------
