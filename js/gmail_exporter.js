@@ -17,8 +17,6 @@ GoogleExport = function(friends) {
   // too...  but this feels cooler.
   this.function_queue = [];
   
-  this.requested_friends_to_import = [];
-  
   // This is for OAuth authentication with google, for contacts importation.
   this.oauth = ChromeExOAuth.initBackgroundPage({
     'request_url' : 'https://www.google.com/accounts/OAuthGetRequestToken',
@@ -37,17 +35,16 @@ GoogleExport.GROUPS_FEED = 'https://www.google.com/m8/feeds/groups/default/full'
 GoogleExport.CONTACTS_FEED = 'https://www.google.com/m8/feeds/contacts/default/full';
 
 
-
 GoogleExport.prototype.process = function(callback) {
   this.callback = callback;
   
   console.log('startExportWithFriends');
   console.log(this.oauth.hasToken());
-  this.function_queue.push(this.ensureContactGroupExists);
-  this.function_queue.push(this.getGmailContacts);
-  this.function_queue.push(this.startExportingRequestedContacts);
+  this.function_queue.push(jQuery.proxy(this.ensureContactGroupExists, this));
+  this.function_queue.push(jQuery.proxy(this.getGmailContacts, this));
+  this.function_queue.push(jQuery.proxy(this.startExportingRequestedContacts, this));
 
-  this.oauth.authorize(this.didOAuthAuthorize);
+  this.oauth.authorize(jQuery.proxy(this.didOAuthAuthorize, this));
 };
 
 GoogleExport.prototype.didOAuthAuthorize = function() {
@@ -115,7 +112,9 @@ GoogleExport.prototype.createContactGroup = function() {
     'body': s
   };
 
-  this.oauth.sendSignedRequest(GoogleExport.GROUPS_FEED, this.onCreateContactGroup, request);
+  this.oauth.sendSignedRequest(GoogleExport.GROUPS_FEED, 
+                                jQuery.proxy(this.onCreateContactGroup, this),
+                                request);
 };
 
 GoogleExport.prototype.onCreateContactGroup = function(text, xhr) {
@@ -135,11 +134,9 @@ GoogleExport.prototype.ensureContactGroupExists = function() {
   // exact group name) and see if we've created this group already.  If the
   // group exists, avoid creating it again (because gmail will happily create
   // another one with the same name).
-  this.oauth.sendSignedRequest(GoogleExport.GROUPS_FEED, this.onGetContactGroups, {
-    'parameters' : {
-      'alt' : 'json',
-    }
-  });
+  this.oauth.sendSignedRequest(GoogleExport.GROUPS_FEED, 
+                                jQuery.proxy(this.onGetContactGroups, this), 
+                                { 'parameters' : { 'alt' : 'json' }});
 };
 
 GoogleExport.prototype.saveContactGroupHrefFromGroupObject = function(group) {
@@ -168,7 +165,7 @@ GoogleExport.prototype.onGetContactGroups = function(text, xhr) {
   }
 
   // Group does not exist, need to create it before doing anything else.
-  this.function_queue.unshift(this.createContactGroup);
+  this.function_queue.unshift(jQuery.proxy(this.createContactGroup, this));
   this.doNextAction();
 };
 
@@ -216,11 +213,13 @@ GoogleExport.prototype.onGetContacts = function(text, xhr) {
 GoogleExport.prototype.getGmailContacts = function() {
   console.log('getGmailContacts');
 
-  this.oauth.sendSignedRequest(GoogleExport.CONTACTS_FEED, this.onGetContacts, {
-    'parameters' : {
-      'max-results' : 100000,
-      'alt' : 'json'
-    }
+  this.oauth.sendSignedRequest(GoogleExport.CONTACTS_FEED,
+      jQuery.proxy(this.onGetContacts, this),
+      {
+        'parameters' : {
+        'max-results' : 100000,
+        'alt' : 'json'
+      }
   });
 
   /*
@@ -342,7 +341,9 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
   };
 
   console.log(s);
-  this.oauth.sendSignedRequest(GoogleExport.CONTACTS_FEED, this.onAddContact, request, friend);
+  this.oauth.sendSignedRequest(GoogleExport.CONTACTS_FEED,
+                               jQuery.proxy(this.onAddContact, this),
+                               request, friend);
 }
 
 GoogleExport.prototype.onAddContact = function(text, xhr, friend) {
@@ -364,67 +365,58 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
   // addresses to determine if a contact already exists in google contacts, so
   // friends with no emails are problematic.  Better to just not deal with
   // them.
-  var friends_with_emails = [];
-  $(this).each(this.requested_friends_to_import, function(key, friend) {
-    if (!friend.email || friend.email.length == 0) {
-      // The friend does not have an email address listed.  Avoid adding him to
-      // Google Contacts altogether.
-      this.callback({
-          finishedProcessingFriend: true,
-          friend: friend,
-          success: 0,
-          message: "Not added: Friend is missing at least one email address!"
-      });
-    } else {
-      friends_with_emails.push(friend);
-    }
-  });
+  var friends_with_emails = this.requested_friends_to_import;
 
   // Keep a list of the friends that are requested for importation into Google
   // contacts that DON'T already exist there.  We determine non-duplicate
   // friends based on their email address already being in the Google contacts.
   var non_duplicate_friends_to_import = [];
-  $(this).each(friends_with_emails, function(key, friend) {
+  for (var j in friends_with_emails) {
+    var friend = friends_with_emails[j];
     // See if the emails address for this friend matches one in the existing
     // google contacts.  If so, skip this friend.
-    for (i in friend.email) {
+    for (var i in friend.email) {
       var email = friend.email[i];
 
-      if (!$(this).google_contacts_hash[email]) {
+      if (!this.google_contacts_hash[email]) {
         non_duplicate_friends_to_import.push(friend);
         // Don't want to add the same friend twice, if this friend has another
         // email address, for example.
         break;
       }
     }
-  });
+  }
 
   // The difference now between friends_with_emails and
   // non_duplicate_friends_to_import is the list of friends that we are NOT
   // adding because they already exist in google contacts.  We need to report
   // these back to the work tab as well.
-  $.each(non_duplicate_friends_to_import, function(key, friend) {
+  for (var i in non_duplicate_friends_to_import) {
+    var friend = non_duplicate_friends_to_import[i];
     if ($.inArray(friend, friends_with_emails) != -1) {
       delete friends_with_emails[$.inArray(friend, friends_with_emails)];
     }
-  });
+  }
+  
   // friends_with_emails has now been pruned to remove all non-duplicate
   // emails.  The remaining friends_with_emails contains only duplicate friends
   // that we don't intend to add, so notify the work tab.
-  $(this).each(friends_with_emails, function(key, friend) {
+  for (var i in friends_with_emails) {
+    var friend = friends_with_emails[i];
     this.callback({
         finishedProcessingFriend: true,
         friend: friend,
         success: 0,
         message: 'Not added: It looks like this friend is already in your Google Contacts!'
     });
-  });
+  }
 
   // Now we're ready to add the remaining, non-duplicate friends to google
   // contacts.
-  $(this).each(non_duplicate_friends_to_import, function(key, friend) {
-    $(this).addFriendToGoogleContacts(friend);
-  });
+  for (var i in non_duplicate_friends_to_import) {
+    var friend = non_duplicate_friends_to_import[i];
+    this.addFriendToGoogleContacts(friend);
+  }
 
   this.doNextAction();
 };
