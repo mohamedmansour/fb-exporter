@@ -15,13 +15,8 @@ information and transfer it to your client.
 Your not stealing their information, your friends are making it public for you 
 to use them.
 
-
 Extra functionality
 -------------------
-This extension will extract their phone numbers too! So you can sync them into 
-your contact book as well. Great to place in your mobile phone or call them 
-directly from an online phone.
-
 I am using a different approach, then the forked version. The forked version 
 just converted the contacts shown on the screen, so if you wanted to export
 all your contacts, you had to manually do it, which was a pain. Instead of 
@@ -29,20 +24,46 @@ manually pressing next from your contacts friends, I am reading the internal
 JavaScript variable that Facebook maintains. I am passing that variable back to
 my extension by using custom events. That allows us to actually see the users
 photo in a nice collage, and export everyone at the same time without any manual
-process.
+process, or you can pick and choose anyone.
 
 I have refactored some portions of the code and added comments where applicable
 I have added a better UI. For example, a Facbook style dialog instead of the
 custom one made before. I have changed the way the process works too.
 
+There are error handling routines as well, if Facebook doesn't like what your 
+doing, it will stop instantaneously! You can start it back again next day or
+in a couple of hours. 
 
-Some problems
+The results are cached, so if you want to continue the process some other time,
+then no worries, it will continue from the last processed contact. 
+
+How to download
+---------------
+Click on downloads, either load the zip file (under developer, chrome://extensions)
+or download the crx and drag that into chrome.
+
+Known problems
+---------------
+- The Worker screen (that has the instructions, and your friends collage), doesn't 
+show if the page is redirected. If thats the case, close that screen and click
+on the "export" button again. Make sure you click it from "/friends/edit/" page.
+That will be fixed in a later release.
+
+- Sometimes the friends are being loaded slowly, the reason being, I check each
+entry if it exists in the local database. That takes time for each entry. I could
+speed it up by doing a single query, but I wanted to release this quickly.
+
+- Cannot delete cache at this time. I will add a button in a later release so 
+you can delete it and refresh the internal cache.
+
+
+Facebook
 -------------
-Facebook is somehow enabling images for emails. I am trying to figure out how
-they enable them. For some strange reason, I believe they use images instead of
-text if you make too many friend requests at the same time. I believe the answer
-to that problem would be slowly initiate the requests, but that will make it a 
-lengthy process. In the future release, I will it an option.
+Facebook is lame. They are converting emails into images so you cannot copy it
+somewhere (wut .. 99% of the people copy the email into their email client). I added
+a mechanism that catches that instantly. So you don't have to worry if they see
+something. The process will stop, and you can start it again the next day. When
+you start it again, it will pick up where it left off.
 
 
 Have fun! Feel free to submit patches and fork :)
