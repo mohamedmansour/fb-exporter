@@ -8,8 +8,8 @@
       "run_at": "document_end",
       "all_frames": true
    } ],
-   "description": "Get *your* data out of Facebook, whether they want you to or not. Facebook doesn't own my friends.",
-   "name": "Facebook Exporter",
+   "description": "Get *your* data contact out of Facebook, whether they want you to or not. You placed that content inside, and you have right to take it back out! Facebook doesn't own my friends.",
+   "name": "Facebook Friend Exporter",
    "permissions": [ 
       "unlimitedStorage",
       "tabs", 
