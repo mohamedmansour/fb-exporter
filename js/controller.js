@@ -14,21 +14,28 @@ function fetchFriendList() {
 /**
  * Render all my friends below. Display their profile pic and a link to their
  * profile page. As well, when hovered, show their name.
+ * @param {number} count The number of friends.
  */
-function renderFriendList() {
+function renderFriendList(count) {
   $('#step1').hide();
   $('#friendlist').show();
   $('#step2').show();
+  $('#remaining-friend-count').show();
+  $('#start-crunching').attr('disabled', true);
+  $('#start-crunching').text('checking cached friends, please wait ...');
 
-  // Reset counter of visible friends. This is just used to show how many friends
-  // we have, and reused for step 3.
-  total_visible_friends = 0;
+  // Reset counter of processed  friends. This is just used to show how many
+  // friends are showing.
+  total_processed_friends = 0;
   
   chrome.tabs.sendRequest(bkg.facebook_id,
                           {getFriendsMap: 1}, function(response) {
     $.each(response.data, function(key, value) {
       bkg.db.getFriend(key, function(result) {
-        total_visible_friends++;
+        total_processed_friends++;
+        $('#remaining-friend-count').text(
+          'Processsing ' + total_processed_friends + ' / ' + count + ' friends!'
+        );
         
         // Create the list friend item, but first decide if its cached or not.
         var li = document.createElement('li');
@@ -47,23 +54,26 @@ function renderFriendList() {
           chrome.tabs.sendRequest(bkg.facebook_id, ({cached: true, data: result.data}));
         }
         $('#friendlist').append(li);
+        
+        // The last friend finished processing.
+        if (total_processed_friends == count) {
+          $('#remaining-friend-count').text(count + ' friends!');
+          $('#start-crunching').text('let\'s start!');
+          $('#start-crunching').attr('disabled', false);
+        }
       });
     });
 
     // Check if we have any friends.
-    if (total_visible_friends == 0) {
+    if (count == 0) {
       var li = document.createElement('li');
       $(li).addClass('friend-row')
            .text('Looks like you have no friends? Impossible! You probably need ' +
                  'to pick a different network (see above).');
     }
 
-    // Show friend counter. Reuse this from step 3.
-    $('#remaining-friend-count').text(total_visible_friends + ' friends!');
-    $('#remaining-friend-count').show();
-
     // Initialize the remaining count, used for step 3.
-    friends_remaining_count = total_visible_friends;
+    friends_remaining_count = count;
   });
 }
 
@@ -294,7 +304,7 @@ $(document).ready(function() {
       item.find('span').text('STARTING');
     }
     else if (request.friendListReceived) {
-      renderFriendList();
+      renderFriendList(request.count);
     }
   });
 

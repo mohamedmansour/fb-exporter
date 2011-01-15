@@ -60,10 +60,16 @@ window.addEventListener('friendExported', function() {
   // Clean up since we no longer need this.
   $(transferDOM).remove();
   
+  // Count the number of friends.
+  var i = 0;
+  $.each(friendsMap, function(key, value) {
+    i++;
+  });
+    
   // Tell the worker tab that we are set!
-  chrome.extension.sendRequest({friendListReceived: 1}, 
+  chrome.extension.sendRequest({friendListReceived: 1, count: i}, 
     function(response) {
-    // Lets start the process! Super!
+      // Lets start the process! Super!
     }
   );
 });
