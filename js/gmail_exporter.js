@@ -252,7 +252,7 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
   // http://code.google.com/apis/gdata/docs/2.0/elements.html
   //
   // For list of defined attributes that are set by the scraping script, look
-  // at fb-exporter.js.
+  // at contet_script.js.
   var title = $('<title/>').attr('type', 'text').text(friend.name);
   $(entry).append(title);
   var name = $('<gd:name/>')
