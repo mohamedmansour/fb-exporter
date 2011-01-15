@@ -40,8 +40,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 // Listen on the real DOM requests to check if friend has been exported.
 window.addEventListener('friendExported', function() {
   // Save the map to this content script world, so our extension can read it.
-  var transferDOM = document.getElementById('transfer-dom-area');
-  friendsMap = JSON.parse(transferDOM.innerText);
+  var transferDOM = $('#fb-transfer-dom-area');
+  friendsMap = JSON.parse(transferDOM.text());
 
   // For testing, lets just view 2 users.
   if (0) {
@@ -59,6 +59,7 @@ window.addEventListener('friendExported', function() {
   }
   // Clean up since we no longer need this.
   $(transferDOM).remove();
+  $('#fb-inject-area').remove();
   
   // Count the number of friends.
   var i = 0;
@@ -163,7 +164,7 @@ function exportFacebookContacts() {
     
     // Create a transfer node DOM, since that is the only way two worlds can
     // communicate with each other.
-    var transferDOM = document.getElementById('transfer-dom-area');
+    var transferDOM = document.getElementById('fb-transfer-dom-area');
     transferDOM.innerText = JSON.stringify(FriendSearchPane._data);
     
     // Inform our content script that we have received the object from Facebook.
@@ -172,12 +173,13 @@ function exportFacebookContacts() {
   
   // Create a dummy textarea DOM.
   var transferDOM = document.createElement('div');
-  $(transferDOM).attr('id', 'transfer-dom-area')
+  $(transferDOM).attr('id', 'fb-transfer-dom-area')
                 .hide()
                 .appendTo($(document.body));
   
   // Start injecting the JS script.
   var script = document.createElement('script');
+  script.setAttribute('id', 'fb-inject-area');
   script.appendChild(document.createTextNode('(' + postFriendMap + ')();'));
   document.body.appendChild(script);  
 }

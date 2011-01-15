@@ -5,8 +5,7 @@
       "matches": [ 
         "http://*.facebook.com/*"
       ],
-      "run_at": "document_end",
-      "all_frames": true
+      "run_at": "document_end"
    } ],
    "description": "Get *your* data contact out of Facebook, whether they want you to or not. You placed that content inside, and you have right to take it back out! Facebook doesn't own my friends.",
    "name": "Facebook Friend Exporter",
