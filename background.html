@@ -45,7 +45,7 @@ function openSingletonPage(url) {
       return;
     }
   }
-  chrome.tabs.create({url: url}, function(tab) {
+  chrome.tabs.create({url: url, selected: true}, function(tab) {
     worker_id = tab.id;
   });
 }

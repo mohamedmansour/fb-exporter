@@ -3,6 +3,15 @@ var total_visible_friends = 0;
 var friends_remaining_count = 0;
 
 /**
+ * Send a request to the Facebook page and tell it to get the friends list. 
+ * Keep the map stored there since we can guarantee to get it afterwards.
+ * Asynchronous communication will not guarantee us to get it now.
+ */
+function fetchFriendList() {
+  chrome.tabs.sendRequest(bkg.facebook_id,{ retrieveFriendsMap: 1});
+}
+
+/**
  * Render all my friends below. Display their profile pic and a link to their
  * profile page. As well, when hovered, show their name.
  */
@@ -284,10 +293,13 @@ $(document).ready(function() {
       item.addClass('starting');
       item.find('span').text('STARTING');
     }
+    else if (request.friendListReceived) {
+      renderFriendList();
+    }
   });
 
 
-  $('.continue1').click(renderFriendList);
+  $('.continue1').click(fetchFriendList);
   
   $('#start-crunching').click(startCrunching);
   

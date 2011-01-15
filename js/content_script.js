@@ -32,6 +32,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   else if (request.clearCache) {
     cachedMap = {};
   }
+  else if(request.retrieveFriendsMap) {
+    exportFacebookContacts();
+  }
 });
 
 // Listen on the real DOM requests to check if friend has been exported.
@@ -57,8 +60,12 @@ window.addEventListener('friendExported', function() {
   // Clean up since we no longer need this.
   $(transferDOM).remove();
   
-  // Lets start the process! Super!
-  switchToWorkerTab();
+  // Tell the worker tab that we are set!
+  chrome.extension.sendRequest({friendListReceived: 1}, 
+    function(response) {
+    // Lets start the process! Super!
+    }
+  );
 });
   
 /**
@@ -178,7 +185,9 @@ function goToFriendPageAndStart() {
   // See if we are at the right page to start.  We need to be at the /friends/*
   // location, to get access to the list of friends. Any other page won't do.
   if (document.location.pathname.match('^/friends/edit') && document.location.search == 0) {
-    exportFacebookContacts();
+    // Do nothing now, the worker tab will manage the state since everything 
+    // is asynchronous, we will let events handle the state.
+    switchToWorkerTab();
   }
   else {     
     $(document.body).append(createFacebookDialog({
