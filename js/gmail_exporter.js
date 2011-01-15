@@ -292,6 +292,28 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
       $(entry).append(gdim);
     }
   }
+  
+  if (friend.phones) {
+    for (key in friend.phones) {
+      // Check if its a mobile phone or other.
+      var phonetext = friend.phones[key];
+      var index = phonetext.lastIndexOf('(Mobile)');
+      var type = 'mobile';
+      if (index == -1) { // Not mobile
+        type = 'other';
+        index = phonetext.lastIndexOf('(Other)'); 
+        if (index == -1) { // Not anything.
+          index = phonetext.length;
+        }
+      }
+      // Remove the label from the number.
+      var phone = phonetext.substring(0, index);
+      var gdim = $('<gd:phoneNumber/>')
+          .attr('rel', 'http://schemas.google.com/g/2005#' + type);
+          .text(phone);
+      $(entry).append(gdim);
+    }
+  }
 
   if (friend.websites) {
     for (key in friend.websites) {

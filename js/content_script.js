@@ -266,7 +266,8 @@ function friendInfoIframeLoaded() {
     var websites = $('li', $('th.label:contains("Website")', $(iframe.contentDocument)).parent());
     var fb = $('td', $('th.label:contains("Facebook")', $(iframe.contentDocument)).parent());
     var gtalks = $('td', $('th.label:contains("Google Talk")', $(iframe.contentDocument)).parent());
-
+    var phones = $('li', $('th.label:contains("Phone")', $(iframe.contentDocument)).parent());
+    
     // Storage for post processing.
     var friend = {};
     friend.id = friend_id;
@@ -284,7 +285,10 @@ function friendInfoIframeLoaded() {
     friend.gtalks = gtalks.map(function() {
       return $(this).text();
     }).get();
-
+    friend.phones = phones.map(function() {
+      return $(this).text();
+    }).get();
+    
     // Relay the information to the background page so we could deal with 
     chrome.extension.sendRequest({relayInfoForFriend: friend});
 
