@@ -46,18 +46,6 @@ or download the crx and drag that into chrome.
 
 Known problems
 ---------------
-- The Worker screen (that has the instructions, and your friends collage), doesn't 
-show if the page is redirected. If thats the case, close that screen and click
-on the "export" button again. Make sure you click it from "/friends/edit/" page.
-That will be fixed in a later release.
-
-- Sometimes the friends are being loaded slowly, the reason being, I check each
-entry if it exists in the local database. That takes time for each entry. I could
-speed it up by doing a single query, but I wanted to release this quickly.
-
-- Cannot delete cache at this time. I will add a button in a later release so 
-you can delete it and refresh the internal cache.
-
 - Filtering friends doesn't work yet.
 
 Facebook
