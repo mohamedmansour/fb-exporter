@@ -29,6 +29,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
     // managing all the spawned timers.
     window.location.reload(); 
   }
+  else if (request.clearCache) {
+    cachedMap = {};
+  }
 });
 
 // Listen on the real DOM requests to check if friend has been exported.

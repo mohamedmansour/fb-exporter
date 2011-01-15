@@ -80,6 +80,21 @@ function startCrunching() {
                           {startExportFriendData: 1});
 }
 
+
+/**
+ * Delete all the cache from database so we can start over. 
+ */
+function deleteCache() {
+  bkg.db.clear();
+  $.each(document.querySelectorAll('#friendlist li.cached'),
+      function(key, value) {
+        $(value).removeClass('cached');
+        $(value).find('span').text('READY');
+      }
+  );
+  chrome.tabs.sendRequest(bkg.facebook_id, ({clearCache: true}));
+}
+
 /**
  * Friend information recieved that needs to be processed/
  * @param {object} friend An object that represents a single friend. Keys are:
@@ -271,9 +286,12 @@ $(document).ready(function() {
     }
   });
 
-  $('.continue1').click(renderFriendList);
 
+  $('.continue1').click(renderFriendList);
+  
   $('#start-crunching').click(startCrunching);
+  
+  $('#delete-cache').click(deleteCache);
 
   // Gmail exportation:
   $('#export-to-gmail').click(function() {

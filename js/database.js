@@ -78,3 +78,13 @@ FriendDB.prototype.updateFriend = function(friend) {
     );
   });
 };
+
+
+/**
+ * Removes every row from the table
+ */
+FriendDB.prototype.clear = function() {
+  this.db.transaction(function(tx) {
+    tx.executeSql('DELETE FROM friend', [], null,  this.onError);
+  });
+};
