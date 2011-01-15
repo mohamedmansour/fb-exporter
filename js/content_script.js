@@ -282,7 +282,7 @@ function friendInfoIframeLoaded() {
       return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
     }).get();
     friend.phones = phones.map(function() {
-      return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
+      return [$(this).text().match(/(.+)(\(Mobile\)|\(Other\))$/).slice(1)];
     }).get();
     
     // Relay the information to the background page so we could deal with 
