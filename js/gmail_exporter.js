@@ -275,20 +275,13 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     }
   }
 
-  if (friend.aims) {
-    for (key in friend.aims) {
-      var gdim = $('<gd:im/>').attr('address', friend.aims[key])
+  if (friend.screen_names) {
+    for (key in friend.screen_names) {
+      var screentext = friend.screen_names[key];
+      var type = Exporter.getScreenNameType(screentext[1]);
+      var gdim = $('<gd:im/>').attr('address', screentext[0])
                               .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#AIM');
-      $(entry).append(gdim);
-    }
-  }
-
-  if (friend.gtalks) {
-    for (key in friend.gtalks) {
-      var gdim = $('<gd:im/>').attr('address', friend.gtalks[key])
-                              .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#GOOGLE_TALK');
+      gdim.attr('protocol', 'http://schemas.google.com/g/2005#' + type);
       $(entry).append(gdim);
     }
   }
@@ -297,20 +290,10 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     for (key in friend.phones) {
       // Check if its a mobile phone or other.
       var phonetext = friend.phones[key];
-      var index = phonetext.lastIndexOf('(Mobile)');
-      var type = 'mobile';
-      if (index == -1) { // Not mobile
-        type = 'other';
-        index = phonetext.lastIndexOf('(Other)'); 
-        if (index == -1) { // Not anything.
-          index = phonetext.length;
-        }
-      }
-      // Remove the label from the number.
-      var phone = phonetext.substring(0, index);
+      var type = Exporter.getPhoneType(phonetext[1]);
       var gdim = $('<gd:phoneNumber/>')
-          .attr('rel', 'http://schemas.google.com/g/2005#' + type);
-          .text(phone);
+          .attr('rel', 'http://schemas.google.com/g/2005#' + type)
+          .text(phonetext[0]);
       $(entry).append(gdim);
     }
   }

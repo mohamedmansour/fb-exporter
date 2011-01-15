@@ -262,31 +262,27 @@ function friendInfoIframeLoaded() {
     //
     // To gather additional friend information, add the right selector here.
     var email = $('li', $('th.label:contains("Email")', $(iframe.contentDocument)).parent());
-    var aims = $('td', $('th.label:contains("AIM")', $(iframe.contentDocument)).parent());
     var websites = $('li', $('th.label:contains("Website")', $(iframe.contentDocument)).parent());
     var fb = $('td', $('th.label:contains("Facebook")', $(iframe.contentDocument)).parent());
-    var gtalks = $('td', $('th.label:contains("Google Talk")', $(iframe.contentDocument)).parent());
+    var screen_names = $('li', $('th.label:contains("Screen Names")', $(iframe.contentDocument)).parent());
     var phones = $('li', $('th.label:contains("Phone")', $(iframe.contentDocument)).parent());
     
-    // Storage for post processing.
+    // Storage for post processing. Cleanup and parse groups.
     var friend = {};
     friend.id = friend_id;
     friend.name = friend_name;
     friend.email = email.map(function() {
       return $(this).text();
     }).get();
-    friend.aims = aims.map(function() {
-      return $(this).text();
-    }).get();
     friend.websites = websites.map(function() {
       return $(this).text();
     }).get();
     friend.fb = fb.text();
-    friend.gtalks = gtalks.map(function() {
-      return $(this).text();
+    friend.screen_names = screen_names.map(function() {
+      return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
     }).get();
     friend.phones = phones.map(function() {
-      return $(this).text();
+      return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
     }).get();
     
     // Relay the information to the background page so we could deal with 
