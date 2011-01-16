@@ -19,7 +19,7 @@ to use them.
 
 Extra functionality
 -------------------
-I am using a different approach, then the forked version. The forked version 
+ - I am using a different approach, then the forked version. The forked version 
 just converted the contacts shown on the screen, so if you wanted to export
 all your contacts, you had to manually do it, which was a pain. Instead of 
 manually pressing next from your contacts friends, I am reading the internal 
@@ -28,16 +28,20 @@ my extension by using custom events. That allows us to actually see the users
 photo in a nice collage, and export everyone at the same time without any manual
 process, or you can pick and choose anyone.
 
-I have refactored some portions of the code and added comments where applicable
-I have added a better UI. For example, a Facbook style dialog instead of the
-custom one made before. I have changed the way the process works too.
-
-There are error handling routines as well, if Facebook doesn't like what your 
+ - Not only exports your friends emails, it exports your contacts phone numbers,
+ emails, end IM screen names such as Google Talk, Yahoo, ICQ, Skype, QQ, and MSN
+ (Windows Live Messenger, Hotmail).
+ 
+ - There are error handling routines as well, if Facebook doesn't like what your 
 doing, it will stop instantaneously! You can start it back again next day or
 in a couple of hours. 
 
-The results are cached, so if you want to continue the process some other time,
+ - The results are cached, so if you want to continue the process some other time,
 then no worries, it will continue from the last processed contact. 
+
+ - I have refactored some portions of the code and added comments where applicable
+I have added a better UI. For example, a Facbook style dialog instead of the
+custom one made before. I have changed the way the process works too.
 
 How to download
 ---------------
