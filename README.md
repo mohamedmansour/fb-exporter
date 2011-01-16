@@ -45,8 +45,12 @@ custom one made before. I have changed the way the process works too.
 
 How to download
 ---------------
-Click on downloads, either load the zip file (under developer, chrome://extensions)
-or download the crx and drag that into chrome.
+ - Click on downloads, either load the zip file (under developer, chrome://extensions)
+or download the crx and drag that into chrome. 
+
+or 
+
+ - It is available in the Chrome Web Store https://chrome.google.com/webstore/detail/ficlccidpkaiepnnboobcmafnnfoomga
 
 Known problems
 ---------------
