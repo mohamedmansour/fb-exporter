@@ -282,7 +282,13 @@ function friendInfoIframeLoaded() {
       return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
     }).get();
     friend.phones = phones.map(function() {
-      return [$(this).text().match(/(.+)(\(Mobile\)|\(Other\))$/).slice(1)];
+      // When a phone number doesn't have a tag (Other, or Mobile) then it should
+      // be treated as Other.
+      var temp = $(this).text().match(/(.+)(?:(\(Mobile\)|\(Other\))?)$/).slice(1);
+      if (temp[1] == undefined) {
+        temp[1] = '(Other)';
+      }
+      return [temp];
     }).get();
     
     // Relay the information to the background page so we could deal with 
