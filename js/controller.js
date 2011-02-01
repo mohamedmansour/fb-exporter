@@ -176,7 +176,10 @@ function gotInfoForFriend(friend) {
 
   friends_remaining_count -= 1;
 
-  $('#remaining-friend-count').text(friends_remaining_count + ' remaining');
+  $('#remaining-friend-count').text(
+    'Processed ' + friend.name + ', ' +
+    friends_remaining_count + ' remaining.'
+  );
 
   if (friends_remaining_count == 0) {
     setupExportScreen();
