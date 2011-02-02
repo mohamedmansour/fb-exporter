@@ -8,11 +8,12 @@
    "content_scripts": [ {
       "js": [ "/js/lib/jquery-1.4.2.min.js", "/js/content_script.js" ],
       "matches": [ 
-        "http://*.facebook.com/*"
+        "http://*.facebook.com/*",
+        "https://*.facebook.com/*"
       ],
       "run_at": "document_end"
    } ],
-   "description": "Get *your* data contact out of Facebook, whether they want you to or not. You placed that content inside, and you have right to take it back out! Facebook doesn't own my friends.",
+   "description": "Get *your* data contact out of Facebook to Google Contacts or CSV, whether they want you to or not.",
    "name": "Facebook Friend Exporter",
    "permissions": [ 
       "unlimitedStorage",
@@ -21,5 +22,5 @@
       "https://www.google.com/accounts/OAuthAuthorizeToken", 
       "https://www.google.com/accounts/OAuthGetAccessToken" 
     ],
-   "version": "1.1.1"
+   "version": "1.1.2"
 }
