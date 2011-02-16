@@ -9,18 +9,22 @@
 <script type="text/javascript" src="/js/lib/chrome_ex_oauth.js"></script>
 
 <!-- For importing to contacts. -->
-<script type="text/javascript" src="/js/exporter.js"></script>
 <script type="text/javascript" src="/js/gmail_exporter.js"></script>
 <script type="text/javascript" src="/js/csv_exporter.js"></script>
+<script type="text/javascript" src="/js/worker.js"></script>
 
 <!-- Add additional export/import methods here. -->
 <script type="text/javascript" src="/js/lib/jquery-1.4.2.min.js"></script>
 <script type="text/javascript">
 
+var db = new FriendDB();
+var grabber = new ProfileGrabber();
+
 var facebook_id = -1;
 var worker_id = -1;
-var db = new FriendDB();
 var error_occured = false;
+var friendsMap = {};    
+var cachedMap = {};
 
 // Start it globally.
 db.open();
@@ -49,6 +53,15 @@ function openSingletonPage(url) {
   chrome.tabs.create({url: url, selected: true}, function(tab) {
     worker_id = tab.id;
   });
+}
+
+function getFriendsMap() {
+  return friendsMap;
+}
+
+function putFriendCache(friend) {
+  console.log('cache recieved ', friend);
+  cachedMap[friend.id] = friend;
 }
 
 /**

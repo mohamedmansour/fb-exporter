@@ -28,53 +28,51 @@ function renderFriendList(count) {
   // friends are showing.
   total_processed_friends = 0;
   
-  chrome.tabs.sendRequest(bkg.facebook_id,
-                          {getFriendsMap: 1}, function(response) {
-    $.each(response.data, function(key, value) {
-      bkg.db.getFriend(key, function(result) {
-        total_processed_friends++;
-        $('#remaining-friend-count').text(
-          'Processsing ' + total_processed_friends + ' / ' + count + ' friends!'
-        );
-        
-        // Create the list friend item, but first decide if its cached or not.
-        var li = document.createElement('li');
-        $(li).addClass('friend-row')
-             .attr('id', key)
-             .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                   '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
-             .click(
-               function() {
-                  chrome.tabs.create({url: 'http://facebook.com' + value.path });
-               }
-             );
-        // When a friend is found, that means they are cached. Inform facebook.
-        if (result.status) {
-          $(li).addClass('cached');
-          chrome.tabs.sendRequest(bkg.facebook_id, ({cached: true, data: result.data}));
-        }
-        $('#friendlist').append(li);
-        
-        // The last friend finished processing.
-        if (total_processed_friends == count) {
-          $('#remaining-friend-count').text(count + ' friends!');
-          $('#start-crunching').text('let\'s start!');
-          $('#start-crunching').attr('disabled', false);
-        }
-      });
-    });
-
-    // Check if we have any friends.
-    if (count == 0) {
+  var friendsMap = bkg.getFriendsMap();
+  $.each(friendsMap, function(key, value) {
+    bkg.db.getFriend(key, function(result) {
+      total_processed_friends++;
+      $('#remaining-friend-count').text(
+        'Processsing ' + total_processed_friends + ' / ' + count + ' friends!'
+      );
+      
+      // Create the list friend item, but first decide if its cached or not.
       var li = document.createElement('li');
       $(li).addClass('friend-row')
-           .text('Looks like you have no friends? Impossible! You probably need ' +
-                 'to pick a different network (see above).');
-    }
-
-    // Initialize the remaining count, used for step 3.
-    friends_remaining_count = count;
+           .attr('id', key)
+           .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
+                 '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
+           .click(
+             function() {
+                chrome.tabs.create({url: 'http://facebook.com' + value.path });
+             }
+           );
+      // When a friend is found, that means they are cached. Inform facebook.
+      if (result.status) {
+        $(li).addClass('cached');
+        bkg.putFriendCache(result.data);
+      }
+      $('#friendlist').append(li);
+      
+      // The last friend finished processing.
+      if (total_processed_friends == count) {
+        $('#remaining-friend-count').text(count + ' friends!');
+        $('#start-crunching').text('let\'s start!');
+        $('#start-crunching').attr('disabled', false);
+      }
+    });
   });
+
+  // Check if we have any friends.
+  if (count == 0) {
+    var li = document.createElement('li');
+    $(li).addClass('friend-row')
+         .text('Looks like you have no friends? Impossible! You probably need ' +
+               'to pick a different network (see above).');
+  }
+
+  // Initialize the remaining count, used for step 3.
+  friends_remaining_count = count;
 }
 
 /**
