@@ -284,7 +284,7 @@ function friendInfoIframeLoaded() {
     friend.phones = phones.map(function() {
       // When a phone number doesn't have a tag (Other, or Mobile) then it should
       // be treated as Other.
-      var temp = $(this).text().match(/(.+)(?:(\(Mobile\)|\(Other\))?)$/).slice(1);
+      var temp = $(this).text().match(/(.+?)(?:(\(Mobile\)|\(Other\))?)$/).slice(1);
       if (temp[1] == undefined) {
         temp[1] = '(Other)';
       }
