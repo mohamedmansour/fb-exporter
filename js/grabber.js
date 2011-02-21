@@ -18,7 +18,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     // fixes.  PS: Who wins the next 20 world series??
     //
     // To gather additional friend information, add the right selector here.
-    var email = $('td:last', $('td.label:contains("Email")', $(dom)).parent());
+    var email = $('td:last a', $('td.label:contains("Email")', $(dom)).parent());
     var fb = $('td:last', $('td.label:contains("Profile")', $(dom)).parent());
     var phone = $('td:last', $('td.label:contains("Phone")', $(dom)).parent());
     var mobile = $('td:last', $('td.label:contains("Mobile")', $(dom)).parent());
