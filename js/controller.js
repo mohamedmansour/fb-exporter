@@ -1,6 +1,7 @@
 var bkg = chrome.extension.getBackgroundPage();
 var total_visible_friends = 0;
 var friends_remaining_count = 0;
+var logDOM = null;
 
 /**
  * Send a request to the Facebook page and tell it to get the friends list. 
@@ -18,6 +19,8 @@ function fetchFriendList() {
  * @param {number} count The number of friends.
  */
 function renderFriendList(friendsMap, count) {
+  logDOM.val('');
+  log('Rendering friends list ...');
   $('#step1').hide();
   $('#friendlist').show();
   $('#step2').show();
@@ -62,7 +65,9 @@ function renderFriendList(friendsMap, count) {
       }
     });
   });
-
+  
+  log('Found ' + count + ' friends!');
+  
   // Check if we have any friends.
   if (count == 0) {
     var li = document.createElement('li');
@@ -76,10 +81,10 @@ function renderFriendList(friendsMap, count) {
 }
 
 /**
- * The main process to start the lengthy process. This will spawn an iframe
- * for every user so we can extract data from it.
+ * The main process to start the lengthy process.
  */
 function startCrunching() {
+  log('Start crunching!');
   $('#step2').hide();
   $('#step3').show();
 
@@ -101,6 +106,7 @@ function startCrunching() {
  * Delete all the cache from database so we can start over. 
  */
 function deleteCache() {
+  log('Deleting cache!');
   bkg.db.clear();
   $.each(document.querySelectorAll('#friendlist li.cached'),
       function(key, value) {
@@ -113,21 +119,17 @@ function deleteCache() {
 
 /**
  * Friend information recieved that needs to be processed/
- * @param {object} friend An object that represents a single friend. Keys are:
- *                        - id: The unique id of the facebook user.
- *                        - name: The full name.
- *                        - email: A list of email addresses.
- *                        - aims: A list of AIM instant messengers.
- *                        - websites: A list of websites.
- *                        - fb: The unique facebook URL for the user.
- *                        - gtalks: Google Talk address.
+ * @param {object} friend An object that represents a single friend.
  */
 function gotInfoForFriend(friend) {
   var success = true;
   
   // If the email is empty
   if (friend.email.length == 1 && friend.email[0] == '') {
+    log('Finished processing [' + friend.name + '] FAIL, no email.' );
     success = false;
+  } else {
+    log('Finished processing [' + friend.name + ']');
   }
   var item = $('#' + friend.id);
   item.find('span').text(success ? 'PROCESSED' : 'FAILED');
@@ -186,6 +188,8 @@ function gotInfoForFriend(friend) {
 }
 
 function setupExportScreen() {
+  log('Export screen is now visible.');
+  
   // All of the friend info for the visible subset of friends has been
   // received.  Show specific export buttons now.
   $('#step3').hide();
@@ -230,7 +234,38 @@ function setupAndStartExport(request) {
   chrome.extension.sendRequest(request);
 }
 
+/**
+ * Format number to 2 digits.
+ */
+function twoDigitsFormat(num) {
+  return (num < 10) ? '0'+ num : num;
+}
+/**
+ * Appends a |message| to the logger panel.
+ */
+function log(message) {
+  var d = new Date();
+  var time = twoDigitsFormat(d.getHours()) + ':' +
+      twoDigitsFormat(d.getMinutes()) + ':' + twoDigitsFormat(d.getSeconds());
+  logDOM.val(logDOM.val() + '\n' + time + ' - ' + message);
+  logDOM.attr({ scrollTop: logDOM.attr("scrollHeight") });
+}
+
 $(document).ready(function() {
+  // Log Manager.
+  logDOM = $('#log');
+  logDOM.attr('disabled', 'disabled');
+  logDOM.hide();
+  $('#btnLog').click(function () {
+    if (logDOM.is(':visible')) {
+      $(this).text('View log');
+      logDOM.slideUp();
+    } else {
+      $(this).text('Hide log');
+     logDOM.slideDown();
+    }
+  });
+  
   // Activate the Terms of Service. They must click it to continue.
   $('#tos').click( function() {
     if ($('#tos').attr('checked')) {
@@ -241,6 +276,9 @@ $(document).ready(function() {
   });
 
   chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    if (request.log) {
+      log(request.log);
+    }
     if (request.gotInfoForFriend) {
       var response = gotInfoForFriend(request.gotInfoForFriend);
       sendResponse({OK: response});
@@ -269,10 +307,9 @@ $(document).ready(function() {
     else if (request.finishedProcessingFriend) {
       // The export finished for this contact.  Update the list, based
       // on the success status, or show the error message.
-      console.log('finishedProcessingFriend ', request.friend.name);
-      console.log('finishedProcessingFriend ', request.success);
-      console.log('finishedProcessingFriend ', request.message);
-
+      log('Export ' + (request.success ? 'passed' : 'failed') + ' [' +
+          request.friend.name + '] ' + request.message);
+      console.log(request.friend);
       var item = $('#' + request.friend.id);
       var status_text = request.success ? 'success' : 'failed';
       item.removeClass('starting');
@@ -294,6 +331,7 @@ $(document).ready(function() {
       }
     }
     else if (request.facebookError) {
+      log('ERROR! Facebook error, they converted emails to images. Try again in 24 hours.');
       $('#note').show();
       setupExportScreen();
     }

@@ -180,13 +180,13 @@ p {
   font-size: 10pt;
 }
 
-#filterfriends {
+#controls {
   position: absolute;
   top: 5px;
   left: 30px;
 }
 
-#filterfriends input, #filterfriends input:focus {
-  padding: 2px;
-  outline: none;
+#log {
+  width: 100%;
+  height: 200px;
 }
