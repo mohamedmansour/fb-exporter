@@ -22,7 +22,7 @@ window.addEventListener('friendExported', function() {
   var friendsMap = JSON.parse(transferDOM.text());
 
   // For testing, lets just view 2 users.
-  if (1) {
+  if (0) {
     var i = 0;
     var testMap = {};
     $.each(friendsMap, function(key, value) {
