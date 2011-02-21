@@ -98,8 +98,9 @@ CSVExporter.prototype.getDump = function() {
 };
 
 /**
- * Adds a column safely to each spot.
- 
+ * Adds a column safely to each spot. It will wrap each column with quotes, and
+ * escape quotes that exists within.
+ *
  * @private
  *
  * @param {String[]} row A reference to a row that we need to push columns to.
@@ -107,7 +108,7 @@ CSVExporter.prototype.getDump = function() {
  */
 CSVExporter.prototype.addColumn_ = function(row, column) {
   if (column) {
-    row.push(column);
+    row.push('"' + column.replace(/"/g, '\\"') + '"');
   } else {
     row.push('');
   }
