@@ -110,7 +110,7 @@ function startExportFriendData() {
       // request with their ID being fetched..
       var href = 'http://m.facebook.com' + value.path;
       href.match('\\?') ? href += '&' : href += '?';
-      href += 'v=info#' + key;
+      href += 'v=info';
 
       // Delay load each friend.
       var delay = i * 11000 + Math.random() * 1000;

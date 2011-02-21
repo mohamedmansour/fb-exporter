@@ -1,15 +1,15 @@
 
 ProfileGrabber = function() {
+  // For some reason $.ajax doesn't work with Facebook. Anyhow, jQuery will 
+  // be remove in the future, too overkill for what we need.
   this.xhr = new XMLHttpRequest();
   this.xhr.overrideMimeType('application/xml');
 };
 
 ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
-  xhr = new XMLHttpRequest();
-  xhr.overrideMimeType('application/xml');
-  xhr.onload = function() {
-    console.log(xhr.readyState);
-    var dom = xhr.responseXML;
+  that = this;
+  this.xhr.onload = function() {
+    var dom = that.xhr.responseXML;
       
     // NOTE TO FUTURE SELF: If this extension breaks, it's probably because the
     // following lines no longer work.  Namely, the fragile selector access
@@ -30,7 +30,11 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     var websites = $('td a', $('td.label:contains("Website")', $(dom)).parent());
 
     // Storage for post processing. Cleanup and parse groups.
-    friend.fb = fb.text();
+    fb = fb.text();
+    if (fb == '') {
+      fb = 'facebook.com/profile.php?id=' + friend.id;
+    }
+    friend.fb = 'http://' + fb;
     friend.phone = {};
     friend.phone.mobile = mobile.text();
     friend.phone.other = phone.text();    
@@ -48,6 +52,6 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     }).get();
     callback(friend);
   };
-  xhr.open('GET', url);
-  xhr.send(null);
+  this.xhr.open('GET', url);
+  this.xhr.send(null);
 };
