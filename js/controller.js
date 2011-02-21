@@ -1,6 +1,7 @@
 var bkg = chrome.extension.getBackgroundPage();
 var total_visible_friends = 0;
 var friends_remaining_count = 0;
+var logDOM = null;
 
 /**
  * Send a request to the Facebook page and tell it to get the friends list. 
@@ -8,15 +9,18 @@ var friends_remaining_count = 0;
  * Asynchronous communication will not guarantee us to get it now.
  */
 function fetchFriendList() {
-  chrome.tabs.sendRequest(bkg.facebook_id,{ retrieveFriendsMap: 1});
+  chrome.tabs.sendRequest(bkg.facebook_id, {retrieveFriendsMap: 1});
 }
 
 /**
  * Render all my friends below. Display their profile pic and a link to their
  * profile page. As well, when hovered, show their name.
+ * @param {Object<id, friend>} friendsMap All the users friends in a map.
  * @param {number} count The number of friends.
  */
-function renderFriendList(count) {
+function renderFriendList(friendsMap, count) {
+  logDOM.val('');
+  log('Rendering friends list ...');
   $('#step1').hide();
   $('#friendlist').show();
   $('#step2').show();
@@ -28,60 +32,59 @@ function renderFriendList(count) {
   // friends are showing.
   total_processed_friends = 0;
   
-  chrome.tabs.sendRequest(bkg.facebook_id,
-                          {getFriendsMap: 1}, function(response) {
-    $.each(response.data, function(key, value) {
-      bkg.db.getFriend(key, function(result) {
-        total_processed_friends++;
-        $('#remaining-friend-count').text(
-          'Processsing ' + total_processed_friends + ' / ' + count + ' friends!'
-        );
-        
-        // Create the list friend item, but first decide if its cached or not.
-        var li = document.createElement('li');
-        $(li).addClass('friend-row')
-             .attr('id', key)
-             .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                   '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
-             .click(
-               function() {
-                  chrome.tabs.create({url: 'http://facebook.com' + value.path });
-               }
-             );
-        // When a friend is found, that means they are cached. Inform facebook.
-        if (result.status) {
-          $(li).addClass('cached');
-          chrome.tabs.sendRequest(bkg.facebook_id, ({cached: true, data: result.data}));
-        }
-        $('#friendlist').append(li);
-        
-        // The last friend finished processing.
-        if (total_processed_friends == count) {
-          $('#remaining-friend-count').text(count + ' friends!');
-          $('#start-crunching').text('let\'s start!');
-          $('#start-crunching').attr('disabled', false);
-        }
-      });
-    });
-
-    // Check if we have any friends.
-    if (count == 0) {
+  $.each(friendsMap, function(key, value) {
+    bkg.db.getFriend(key, function(result) {
+      total_processed_friends++;
+      $('#remaining-friend-count').text(
+        'Processsing ' + total_processed_friends + ' / ' + count + ' friends!'
+      );
+      
+      // Create the list friend item, but first decide if its cached or not.
       var li = document.createElement('li');
       $(li).addClass('friend-row')
-           .text('Looks like you have no friends? Impossible! You probably need ' +
-                 'to pick a different network (see above).');
-    }
-
-    // Initialize the remaining count, used for step 3.
-    friends_remaining_count = count;
+           .attr('id', key)
+           .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
+                 '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
+           .click(
+             function() {
+                chrome.tabs.create({url: 'http://facebook.com' + value.path });
+             }
+           );
+      // When a friend is found, that means they are cached. Inform facebook.
+      if (result.status) {
+        $(li).addClass('cached');
+        bkg.putFriendCache(result.data);
+      }
+      $('#friendlist').append(li);
+      
+      // The last friend finished processing.
+      if (total_processed_friends == count) {
+        $('#remaining-friend-count').text(count + ' friends!');
+        $('#start-crunching').text('let\'s start!');
+        $('#start-crunching').attr('disabled', false);
+      }
+    });
   });
+  
+  log('Found ' + count + ' friends!');
+  
+  // Check if we have any friends.
+  if (count == 0) {
+    var li = document.createElement('li');
+    $(li).addClass('friend-row')
+         .text('Looks like you have no friends? Impossible! You probably need ' +
+               'to pick a different network (see above).');
+  }
+
+  // Initialize the remaining count, used for step 3.
+  friends_remaining_count = count;
 }
 
 /**
- * The main process to start the lengthy process. This will spawn an iframe
- * for every user so we can extract data from it.
+ * The main process to start the lengthy process.
  */
 function startCrunching() {
+  log('Start crunching!');
   $('#step2').hide();
   $('#step3').show();
 
@@ -95,8 +98,7 @@ function startCrunching() {
   });
   
   // Start request, let the background page start the long long long process!
-  chrome.tabs.sendRequest(bkg.facebook_id,
-                          {startExportFriendData: 1});
+  bkg.startExportFriendData();
 }
 
 
@@ -104,6 +106,7 @@ function startCrunching() {
  * Delete all the cache from database so we can start over. 
  */
 function deleteCache() {
+  log('Deleting cache!');
   bkg.db.clear();
   $.each(document.querySelectorAll('#friendlist li.cached'),
       function(key, value) {
@@ -111,26 +114,22 @@ function deleteCache() {
         $(value).find('span').text('READY');
       }
   );
-  chrome.tabs.sendRequest(bkg.facebook_id, ({clearCache: true}));
+  bkg.clearCache();
 }
 
 /**
  * Friend information recieved that needs to be processed/
- * @param {object} friend An object that represents a single friend. Keys are:
- *                        - id: The unique id of the facebook user.
- *                        - name: The full name.
- *                        - email: A list of email addresses.
- *                        - aims: A list of AIM instant messengers.
- *                        - websites: A list of websites.
- *                        - fb: The unique facebook URL for the user.
- *                        - gtalks: Google Talk address.
+ * @param {object} friend An object that represents a single friend.
  */
 function gotInfoForFriend(friend) {
   var success = true;
   
   // If the email is empty
   if (friend.email.length == 1 && friend.email[0] == '') {
+    log('Finished processing [' + friend.name + '] FAIL, no email.' );
     success = false;
+  } else {
+    log('Finished processing [' + friend.name + ']');
   }
   var item = $('#' + friend.id);
   item.find('span').text(success ? 'PROCESSED' : 'FAILED');
@@ -189,6 +188,8 @@ function gotInfoForFriend(friend) {
 }
 
 function setupExportScreen() {
+  log('Export screen is now visible.');
+  
   // All of the friend info for the visible subset of friends has been
   // received.  Show specific export buttons now.
   $('#step3').hide();
@@ -233,7 +234,38 @@ function setupAndStartExport(request) {
   chrome.extension.sendRequest(request);
 }
 
+/**
+ * Format number to 2 digits.
+ */
+function twoDigitsFormat(num) {
+  return (num < 10) ? '0'+ num : num;
+}
+/**
+ * Appends a |message| to the logger panel.
+ */
+function log(message) {
+  var d = new Date();
+  var time = twoDigitsFormat(d.getHours()) + ':' +
+      twoDigitsFormat(d.getMinutes()) + ':' + twoDigitsFormat(d.getSeconds());
+  logDOM.val(logDOM.val() + '\n' + time + ' - ' + message);
+  logDOM.attr({ scrollTop: logDOM.attr("scrollHeight") });
+}
+
 $(document).ready(function() {
+  // Log Manager.
+  logDOM = $('#log');
+  logDOM.attr('disabled', 'disabled');
+  logDOM.hide();
+  $('#btnLog').click(function () {
+    if (logDOM.is(':visible')) {
+      $(this).text('View log');
+      logDOM.slideUp();
+    } else {
+      $(this).text('Hide log');
+     logDOM.slideDown();
+    }
+  });
+  
   // Activate the Terms of Service. They must click it to continue.
   $('#tos').click( function() {
     if ($('#tos').attr('checked')) {
@@ -244,6 +276,9 @@ $(document).ready(function() {
   });
 
   chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    if (request.log) {
+      log(request.log);
+    }
     if (request.gotInfoForFriend) {
       var response = gotInfoForFriend(request.gotInfoForFriend);
       sendResponse({OK: response});
@@ -272,10 +307,9 @@ $(document).ready(function() {
     else if (request.finishedProcessingFriend) {
       // The export finished for this contact.  Update the list, based
       // on the success status, or show the error message.
-      console.log('finishedProcessingFriend ', request.friend.name);
-      console.log('finishedProcessingFriend ', request.success);
-      console.log('finishedProcessingFriend ', request.message);
-
+      log('Export ' + (request.success ? 'passed' : 'failed') + ' [' +
+          request.friend.name + '] ' + request.message);
+      console.log(request.friend);
       var item = $('#' + request.friend.id);
       var status_text = request.success ? 'success' : 'failed';
       item.removeClass('starting');
@@ -297,6 +331,7 @@ $(document).ready(function() {
       }
     }
     else if (request.facebookError) {
+      log('ERROR! Facebook error, they converted emails to images. Try again in 24 hours.');
       $('#note').show();
       setupExportScreen();
     }
@@ -306,8 +341,8 @@ $(document).ready(function() {
       item.addClass('starting');
       item.find('span').text('STARTING');
     }
-    else if (request.friendListReceived) {
-      renderFriendList(request.count);
+    else if (request.renderFriendsList) {
+      renderFriendList(request.renderFriendsList, request.count);
     }
   });
 

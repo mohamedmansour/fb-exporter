@@ -5,9 +5,9 @@ CSVExporter = function(friends) {
   this.friends = friends;
   this.header = ['Name', 'Email 1', 'Email 2', 'Email 3',
                   'Phone Mobile', 'Phone Other',
-                  'IM 1', 'IM 2', 'IM 3',
+                  'Google Talk', 'MSN', 'Skype', 'Yahoo',
                   'Website 1', 'Website 2', 'Website 3',
-                  'Website Facebook'
+                  'Website Facebook', 'Address'
                  ];
   this.dump = '';
 };
@@ -31,38 +31,14 @@ CSVExporter.prototype.process = function(callback) {
     }
     
     // Phone.
-    var phone1 = friend.phones[0];
-    var phone2 = friend.phones[1];
-    var mobile = null;
-    var other = null;
-    if (phone1) {
-      if (Exporter.getPhoneType(phone1[1]) == 'mobile') {
-        mobile = phone1[0];
-      }
-      else {
-        other = phone1[0];
-      }
-    }
-    if (phone2) {
-      if (Exporter.getPhoneType(phone2[1]) == 'mobile') {
-        mobile = phone2[0];
-      }
-      else {
-        other = phone2[0];
-      }
-    }
-    this.addColumn_(csv_row, mobile);
-    this.addColumn_(csv_row, other);
+    this.addColumn_(csv_row, friend.phone.mobile);
+    this.addColumn_(csv_row, friend.phone.other);
     
-    // IM Parsing just 3.
-    for (i = 0; i < 3; i++){
-      var screen_name = friend.screen_names[i];
-      var name = null;
-      if (screen_name)  {
-        name = screen_name[1] + ': ' + screen_name[0];
-      }
-      this.addColumn_(csv_row, name);
-    }
+    // IM Parsing just 4.
+    this.addColumn_(csv_row, friend.im.gtalk);
+    this.addColumn_(csv_row, friend.im.hotmail);
+    this.addColumn_(csv_row, friend.im.skype);
+    this.addColumn_(csv_row, friend.im.yahoo);
 
     // Website parsing.
     for (i = 0; i < 3; i++){
@@ -71,6 +47,9 @@ CSVExporter.prototype.process = function(callback) {
     
     // Friend FB parsing.
     this.addColumn_(csv_row, friend.fb);
+    
+    // Address parsing.
+    this.addColumn_(csv_row, friend.address);
 
     csv_rows.push(csv_row);
 

@@ -5,34 +5,12 @@ var PROFILE_POLL_DELAY=2000;
 var exportEvent = document.createEvent('Event');
 exportEvent.initEvent('friendExported', true, true);
 
-// Main friend map which was retrieved by the website.
-var friendsMap = {};    
-var cachedMap = {};
-
 // Just draw the export friends link on the top next to the other links.
 renderExportFriendsLink();
 
 // Listen on extension requests.
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-  if (request.startExportFriendData) {
-    startExportFriendData();
-  }
-  else if (request.getFriendsMap) {
-    sendResponse({data: friendsMap});
-  }
-  else if (request.cached) {
-    console.log('cache recieved ', request.data);
-    cachedMap[request.data.id] = request.data;
-  }
-  else if (request.facebookError) {
-    // Reload the content script so that the script will stop. Better than
-    // managing all the spawned timers.
-    window.location.reload(); 
-  }
-  else if (request.clearCache) {
-    cachedMap = {};
-  }
-  else if(request.retrieveFriendsMap) {
+  if(request.retrieveFriendsMap) {
     exportFacebookContacts();
   }
 });
@@ -41,7 +19,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 window.addEventListener('friendExported', function() {
   // Save the map to this content script world, so our extension can read it.
   var transferDOM = $('#fb-transfer-dom-area');
-  friendsMap = JSON.parse(transferDOM.text());
+  var friendsMap = JSON.parse(transferDOM.text());
 
   // For testing, lets just view 2 users.
   if (0) {
@@ -68,11 +46,8 @@ window.addEventListener('friendExported', function() {
   });
     
   // Tell the worker tab that we are set!
-  chrome.extension.sendRequest({friendListReceived: 1, count: i}, 
-    function(response) {
-      // Lets start the process! Super!
-    }
-  );
+  chrome.extension.sendRequest({friendsListReceived: friendsMap});
+  chrome.extension.sendRequest({renderFriendsList: friendsMap, count: i});
 });
   
 /**
@@ -81,9 +56,7 @@ window.addEventListener('friendExported', function() {
  */
 function switchToWorkerTab() {
   // The extension will handle the case if the worker tab already exists.
-  chrome.extension.sendRequest({switchToWorkerTab: 1}, function(response) {
-    console.log('Returned from extension');
-  });
+  chrome.extension.sendRequest({switchToWorkerTab: 1});
 }
 
 /**
@@ -228,110 +201,4 @@ function renderExportFriendsLink() {
       .css('color', 'white')
       .click(goToFriendPageAndStart);
   exportFriendsLink.appendTo($('#pageNav a:contains("Home")').parent());
-}
-
-/**
- * When the iframe has been loaded, we wait for N seconds (3s default), 
- * Once frame is loaded, we extract the information, then pass the data back
- * to the background page for post processing.
- *
- * TODO(mohamed): The email usually gets rendered as an image captcha, I believe
- *                is purposely there because we are scraping our own pages to 
- *                automatically sync our friends contact information. Perhaps
- *                there is such limitation on how many friend pages we can view
- *                This needs to be handled in a way, to OCR that image, and 
- *                store it. For now, we need to inform the user an error occured
- *                because Facebook decided to convert their email address to
- *                an unreadable image for machines to quickly analyse and store.
- */
-function friendInfoIframeLoaded() {
-  var iframe = this;
-    
-  // We can't access the iframe elements directly, because they probably have
-  // not loaded yet.  The contact information fields are appended dynamically.
-  // Instead, we use setTimeout to give all the pagelets a chance to load.
-  setTimeout(function(iframe) {    
-    var friend_id = iframe.src.substring(iframe.src.lastIndexOf('#') + 1);
-    var friend_name = friendsMap[friend_id].text;
-    
-    // NOTE TO FUTURE SELF: If this extension breaks, it's probably because the
-    // following lines no longer work.  Namely, the fragile selector access
-    // being done below to get at the corresponding fields might need to be
-    // updated.  Look at the actual FB page in question to make the right
-    // fixes.  PS: Who wins the next 20 world series??
-    //
-    // To gather additional friend information, add the right selector here.
-    var email = $('li', $('th.label:contains("Email")', $(iframe.contentDocument)).parent());
-    var websites = $('li', $('th.label:contains("Website")', $(iframe.contentDocument)).parent());
-    var fb = $('td', $('th.label:contains("Facebook")', $(iframe.contentDocument)).parent());
-    var screen_names = $('li', $('th.label:contains("Screen Names")', $(iframe.contentDocument)).parent());
-    var phones = $('li', $('th.label:contains("Phone")', $(iframe.contentDocument)).parent());
-    
-    // Storage for post processing. Cleanup and parse groups.
-    var friend = {};
-    friend.id = friend_id;
-    friend.name = friend_name;
-    friend.email = email.map(function() {
-      return $(this).text();
-    }).get();
-    friend.websites = websites.map(function() {
-      return $(this).text();
-    }).get();
-    friend.fb = fb.text();
-    friend.screen_names = screen_names.map(function() {
-      return [$(this).text().match(/([\w\.\@]+)(\(.+\))$/).slice(1)];
-    }).get();
-    friend.phones = phones.map(function() {
-      // When a phone number doesn't have a tag (Other, or Mobile) then it should
-      // be treated as Other.
-      var temp = $(this).text().match(/(.+?)(?:(\(Mobile\)|\(Other\))?)$/).slice(1);
-      if (temp[1] == undefined) {
-        temp[1] = '(Other)';
-      }
-      return [temp];
-    }).get();
-    
-    // Relay the information to the background page so we could deal with 
-    chrome.extension.sendRequest({relayInfoForFriend: friend});
-
-    // Clean up iframe. All extraction successful.
-    $(iframe).remove();
-  }, PROFILE_POLL_DELAY, this);
-}
-
-/**
- * Start exporting friend data, make sure we delay loading each friend, that way
- * Facebook wont block us since we are trying to view our friends.
- */
-function startExportFriendData() {
-  var i = 0;
-  // Iterate through each friend by key[value]. 
-  $.each(friendsMap, function(key, value) {
-    // If the item is cached, no need to refetch it, just relay the information.
-    if (cachedMap[key]) {
-      console.log('Cache received, no need to grab it again.');
-      chrome.extension.sendRequest({relayInfoForFriend: cachedMap[key]});
-    }
-    else {
-      // Figure out the proper info page, this makes sure to support both
-      // profile name pages with (unique names) or just profile id pages
-      // (numbers). As well, append the ID so we can uniquely identify each page
-      // request with their ID being fetched..
-      var href = 'http://www.facebook.com' + value.path;
-      href.match('\\?') ? href += '&' : href += '?';
-      href += 'v=info#' + key;
-
-      // Delay load each friend.
-      var delay = i * 11000 + Math.random() * 1000;
-      setTimeout(function() {
-        chrome.extension.sendRequest({friendExtractionStarted: key});
-        var iframe = document.createElement('iframe');
-        $(iframe).attr('src', href).attr('class', 'fb-exporter');
-        $(document.body).prepend(iframe);
-        $(iframe).load(friendInfoIframeLoaded);
-      }, delay);
-
-      i++;
-    }
-  });
 }

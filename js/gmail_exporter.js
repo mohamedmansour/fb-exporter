@@ -259,6 +259,70 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
           .append($('<gd:fullName/>').text(friend.name));
   $(entry).append(name);
 
+  if (friend.fb) {
+    // The friend's FB page, direct website.
+    var website = $("<gcontact:website/>")
+        .attr("label", "facebook profile")
+        .attr("href", friend.fb);
+    $(entry).append(website);
+  }
+  
+  if (friend.phone.mobile) {
+    var mobile = $('<gd:phoneNumber/>')
+        .attr('rel', 'http://schemas.google.com/g/2005#mobile')
+        .text(friend.phone.mobile);
+    $(entry).append(gdim);
+  }
+  
+  if (friend.phone.other) {
+    var mobile = $('<gd:phoneNumber/>')
+        .attr('rel', 'http://schemas.google.com/g/2005#other')
+        .text(friend.phone.other);
+    $(entry).append(gdim);
+  }
+  
+  if (friend.address) {
+    var mobile = $('<gd:postalAddress/>')
+        .attr('rel', 'http://schemas.google.com/g/2005#home')
+        .text(friend.address);
+    $(entry).append(gdim);
+  }
+  
+  // Instant Messengers.
+  // TODO: Make it nicer by looping every single IM found instead of 
+  //       dealing each protocol seperately.
+  if (friend.im.skype) {
+      var gdim = $('<gd:im/>')
+          .attr('address', friend.im.skype)
+          .attr('rel', 'http://schemas.google.com/g/2005#home');
+      gdim.attr('protocol', 'http://schemas.google.com/g/2005#SKYPE');
+      $(entry).append(gdim);
+  }
+  
+  if (friend.im.gtalk) {
+      var gdim = $('<gd:im/>')
+          .attr('address', friend.im.gtalk)
+          .attr('rel', 'http://schemas.google.com/g/2005#home');
+      gdim.attr('protocol', 'http://schemas.google.com/g/2005#GOOGLE_TALK');
+      $(entry).append(gdim);
+  }
+  
+  if (friend.im.hotmail) {
+      var gdim = $('<gd:im/>')
+          .attr('address', friend.im.hotmail)
+          .attr('rel', 'http://schemas.google.com/g/2005#home');
+      gdim.attr('protocol', 'http://schemas.google.com/g/2005#MSN');
+      $(entry).append(gdim);
+  }
+  
+  if (friend.im.yahoo) {
+      var gdim = $('<gd:im/>')
+          .attr('address', friend.im.yahoo)
+          .attr('rel', 'http://schemas.google.com/g/2005#home');
+      gdim.attr('protocol', 'http://schemas.google.com/g/2005#YAHOO');
+      $(entry).append(gdim);
+  }
+  
   if (friend.email) {
     // Handle multiple emails.  The .email property is a list of defined
     // email.
@@ -275,29 +339,6 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     }
   }
 
-  if (friend.screen_names) {
-    for (key in friend.screen_names) {
-      var screentext = friend.screen_names[key];
-      var type = Exporter.getScreenNameType(screentext[1]);
-      var gdim = $('<gd:im/>').attr('address', screentext[0])
-                              .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#' + type);
-      $(entry).append(gdim);
-    }
-  }
-  
-  if (friend.phones) {
-    for (key in friend.phones) {
-      // Check if its a mobile phone or other.
-      var phonetext = friend.phones[key];
-      var type = Exporter.getPhoneType(phonetext[1]);
-      var gdim = $('<gd:phoneNumber/>')
-          .attr('rel', 'http://schemas.google.com/g/2005#' + type)
-          .text(phonetext[0]);
-      $(entry).append(gdim);
-    }
-  }
-
   if (friend.websites) {
     for (key in friend.websites) {
       var website = $('<gcontact:website/>')
@@ -305,14 +346,6 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
                              .attr('href', friend.websites[key]);
       $(entry).append(website);
     }
-  }
-
-  if (friend.fb) {
-    // The friend's FB page, direct website.
-    var website = $("<gcontact:website/>")
-                           .attr("label", "facebook profile")
-                           .attr("href", friend.fb);
-    $(entry).append(website);
   }
 
   // Finally, add the friend to the right group (the one we (possibly) created

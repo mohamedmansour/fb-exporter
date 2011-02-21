@@ -71,7 +71,7 @@
     </p>
   </div>
   <!-- 
-    STEP 3:
+    STEP 4:
       Choose the friends that you want to export to your external contact manager.
    -->
   <div class="bubble" id="step4">
@@ -96,23 +96,26 @@
     BASIC LAYOUT
    -->
   <div class="bubble" id="friendlist">
-    <div id="filterfriends">
-      <input type="search" placeholder="Filter friends ..." />
+    <div id="controls">
+      <button id="btnLog">View log</button>
     </div>
-    <div id="remaining-friend-count"></div>
-    <div id="note">
-    <h1>NOTICE</h2>
-    <p>Facebook doesn't like it when we visit our friends alot. And if visit 
-    a couple of friends, lets say ~60 profiles an hour, then Facebook purposely
-    removes the textual email from our friends profile! Even if they want us to 
-    see it! </p>
-    <p>But they will allow us enjoy to enjoy seeing our friends email address
-    in 30 minutes, when they are done messing around. We wil be taking a break 
-    since we do not want Facebook to be mad at us since we love our friends.</p>
-    <p>Feel free to export your friends now! Don't worry, you can resume fetching
-    in an hour, and everything is cached, so it will start where you left off :)</p>
-    </div>
-    <ul id="friendlist"/>
+    <textarea id="log"></textarea>
+    <div>
+      <div id="remaining-friend-count"></div>
+      <div id="note">
+        <h1>NOTICE</h2>
+        <p>Facebook doesn't like it when we visit our friends alot. And if visit 
+        a couple of friends, lets say ~60 profiles an hour, then Facebook purposely
+        removes the textual email from our friends profile! Even if they want us to 
+        see it! </p>
+        <p>But they will allow us enjoy to enjoy seeing our friends email address
+        in 30 minutes, when they are done messing around. We wil be taking a break 
+        since we do not want Facebook to be mad at us since we love our friends.</p>
+        <p>Feel free to export your friends now! Don't worry, you can resume fetching
+        in an hour, and everything is cached, so it will start where you left off :)</p>
+      </div>
+      <ul id="friendlist"/>
+      </div>
   </div>
   <img id="ajax-loader" src="/img/ajax-loader.gif"/>
 </body>
