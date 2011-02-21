@@ -8,15 +8,16 @@ var friends_remaining_count = 0;
  * Asynchronous communication will not guarantee us to get it now.
  */
 function fetchFriendList() {
-  chrome.tabs.sendRequest(bkg.facebook_id,{ retrieveFriendsMap: 1});
+  chrome.tabs.sendRequest(bkg.facebook_id, {retrieveFriendsMap: 1});
 }
 
 /**
  * Render all my friends below. Display their profile pic and a link to their
  * profile page. As well, when hovered, show their name.
+ * @param {Object<id, friend>} friendsMap All the users friends in a map.
  * @param {number} count The number of friends.
  */
-function renderFriendList(count) {
+function renderFriendList(friendsMap, count) {
   $('#step1').hide();
   $('#friendlist').show();
   $('#step2').show();
@@ -28,7 +29,6 @@ function renderFriendList(count) {
   // friends are showing.
   total_processed_friends = 0;
   
-  var friendsMap = bkg.getFriendsMap();
   $.each(friendsMap, function(key, value) {
     bkg.db.getFriend(key, function(result) {
       total_processed_friends++;
@@ -93,8 +93,7 @@ function startCrunching() {
   });
   
   // Start request, let the background page start the long long long process!
-  chrome.tabs.sendRequest(bkg.facebook_id,
-                          {startExportFriendData: 1});
+  bkg.startExportFriendData();
 }
 
 
@@ -109,7 +108,7 @@ function deleteCache() {
         $(value).find('span').text('READY');
       }
   );
-  chrome.tabs.sendRequest(bkg.facebook_id, ({clearCache: true}));
+  bkg.clearCache();
 }
 
 /**
@@ -304,8 +303,8 @@ $(document).ready(function() {
       item.addClass('starting');
       item.find('span').text('STARTING');
     }
-    else if (request.friendListReceived) {
-      renderFriendList(request.count);
+    else if (request.renderFriendsList) {
+      renderFriendList(request.renderFriendsList, request.count);
     }
   });
 

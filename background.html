@@ -11,7 +11,7 @@
 <!-- For importing to contacts. -->
 <script type="text/javascript" src="/js/gmail_exporter.js"></script>
 <script type="text/javascript" src="/js/csv_exporter.js"></script>
-<script type="text/javascript" src="/js/worker.js"></script>
+<script type="text/javascript" src="/js/grabber.js"></script>
 
 <!-- Add additional export/import methods here. -->
 <script type="text/javascript" src="/js/lib/jquery-1.4.2.min.js"></script>
@@ -55,13 +55,13 @@ function openSingletonPage(url) {
   });
 }
 
-function getFriendsMap() {
-  return friendsMap;
-}
-
 function putFriendCache(friend) {
   console.log('cache recieved ', friend);
   cachedMap[friend.id] = friend;
+}
+
+function clearCache() {
+  cachedMap = {};
 }
 
 /**
@@ -84,7 +84,6 @@ function onFriendRelay(friend) {
   chrome.tabs.sendRequest(worker_id, payload, function (response) {
     if (!response.OK) {
       error_occured = true;
-      chrome.tabs.sendRequest(facebook_id, { facebookError: 1 });
       chrome.tabs.sendRequest(worker_id, { facebookError: 1 });
     }
     else {
@@ -95,14 +94,44 @@ function onFriendRelay(friend) {
   });
 }
 
+function startExportFriendData() {
+  var i = 0;
+  // Iterate through each friend by key[value]. 
+  $.each(friendsMap, function(key, value) {
+    // If the item is cached, no need to refetch it, just relay the information.
+    if (cachedMap[key]) {
+      console.log('Cache received, no need to grab it again.');
+      onFriendRelay(cachedMap[key]);
+    }
+    else {
+      // Figure out the proper info page, this makes sure to support both
+      // profile name pages with (unique names) or just profile id pages
+      // (numbers). As well, append the ID so we can uniquely identify each page
+      // request with their ID being fetched..
+      var href = 'http://m.facebook.com' + value.path;
+      href.match('\\?') ? href += '&' : href += '?';
+      href += 'v=info#' + key;
+
+      // Delay load each friend.
+      var delay = i * 11000 + Math.random() * 1000;
+      setTimeout(function() {
+        chrome.tabs.sendRequest(worker_id, { friendExtractionStarted: key });
+        var friend = { id: key, name: value.name };
+        grabber.extractInfo(friend, href, function(f) {
+          onFriendRelay(f);
+        });
+      }, delay);
+
+      i++;
+    }
+  });
+}
+
 // Extension request listener.
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
   if (request.switchToWorkerTab) {
     facebook_id = sender.tab.id;
     openSingletonPage(chrome.extension.getURL('controller.html'));
-  }
-  else if (request.relayInfoForFriend) {
-    onFriendRelay(request.relayInfoForFriend);
   }
   else if (request.doGmailExport) {
     var gmail = new GoogleExport(request.requestedFriends)
@@ -112,6 +141,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
     var csv = new CSVExporter(request.requestedFriends);
     csv.process(onFriendFinishExport);
     chrome.tabs.sendRequest(worker_id, { csvExportFinished: csv.getDump() });
+  }
+  else if (request.friendsListReceived) {
+    friendsMap = request.friendsListReceived;
   }
 });
 </script>

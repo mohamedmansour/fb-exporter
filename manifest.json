@@ -18,10 +18,8 @@
    "permissions": [ 
       "unlimitedStorage",
       "tabs", 
-      "https://m.facebook.com/*",
-      "http://www.google.com/m8/feeds/*", 
-      "https://www.google.com/accounts/OAuthAuthorizeToken", 
-      "https://www.google.com/accounts/OAuthGetAccessToken" 
+      "https://*/*",
+      "http://*/*"
     ],
    "version": "1.1.2"
 }

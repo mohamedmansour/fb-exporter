@@ -10,15 +10,7 @@ renderExportFriendsLink();
 
 // Listen on extension requests.
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-  if (request.facebookError) {
-    // Reload the content script so that the script will stop. Better than
-    // managing all the spawned timers.
-    window.location.reload(); 
-  }
-  else if (request.clearCache) {
-    cachedMap = {};
-  }
-  else if(request.retrieveFriendsMap) {
+  if(request.retrieveFriendsMap) {
     exportFacebookContacts();
   }
 });
@@ -30,7 +22,7 @@ window.addEventListener('friendExported', function() {
   var friendsMap = JSON.parse(transferDOM.text());
 
   // For testing, lets just view 2 users.
-  if (0) {
+  if (1) {
     var i = 0;
     var testMap = {};
     $.each(friendsMap, function(key, value) {
@@ -54,11 +46,8 @@ window.addEventListener('friendExported', function() {
   });
     
   // Tell the worker tab that we are set!
-  chrome.extension.sendRequest({friendListReceived: friendsMap, count: i}, 
-    function(response) {
-      // Lets start the process! Super!
-    }
-  );
+  chrome.extension.sendRequest({friendsListReceived: friendsMap});
+  chrome.extension.sendRequest({renderFriendsList: friendsMap, count: i});
 });
   
 /**

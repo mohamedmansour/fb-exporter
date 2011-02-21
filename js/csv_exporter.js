@@ -86,7 +86,7 @@ CSVExporter.prototype.getDump = function() {
  */
 CSVExporter.prototype.addColumn_ = function(row, column) {
   if (column) {
-    row.push(column);
+    row.push('"' + column.replace(/"/g, '\\"') + '"');
   } else {
     row.push('');
   }
