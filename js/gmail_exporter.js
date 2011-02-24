@@ -269,7 +269,7 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
 
   if (friend.birthday) {
     var gdim = $('<gcontact:birthday/>')
-         .when(friend.birthday);
+        .attr('when', friend.birthday);
     $(entry).append(gdim);
   }
   
