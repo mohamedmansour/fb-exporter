@@ -120,11 +120,9 @@ GoogleExport.prototype.createContactGroup = function() {
 GoogleExport.prototype.onCreateContactGroup = function(text, xhr) {
   console.log('onCreateContactGroup');
   var data = JSON.parse(text);
-  console.log(data);
   this.saveContactGroupHrefFromGroupObject(data.entry);
 
   // Don't need to do anything with the function queue.
-  console.log(text);
   this.doNextAction();
 };
 
@@ -142,7 +140,7 @@ GoogleExport.prototype.ensureContactGroupExists = function() {
 GoogleExport.prototype.saveContactGroupHrefFromGroupObject = function(group) {
   // The group argument is an object representing the (possibly newly created)
   // group.  It is an object (already parsed from JSON).
-
+  console.log("saveContactGroupHrefFromGroupObject");
   this.contact_group_id = group.id.$t;
 };
       
@@ -156,7 +154,6 @@ GoogleExport.prototype.onGetContactGroups = function(text, xhr) {
   if ('entry' in feed.feed) {
     // Some entries (ie, groups) exist, see if one of them is our group.
     for (key in feed.feed.entry) {
-      console.log(key);
       if (feed.feed.entry[key].title.$t == GoogleExport.CONTACT_GROUP_NAME) {
         this.saveContactGroupHrefFromGroupObject(feed.feed.entry[key]);
         return this.doNextAction();
@@ -180,31 +177,33 @@ GoogleExport.prototype.onGetContacts = function(text, xhr) {
 
   this.google_contacts_hash = Object();
   var data = JSON.parse(text);
-  console.log(data);
-  for (var i = 0, entry; entry = data.feed.entry[i]; i++) {
-    /*
-    var contact = {
-      'name' : entry['title']['$t'],
-      'id' : entry['id']['$t'],
-      'emails' : []
-    };
-    */
+  if (data.feed.entry) {
+    for (var i = 0, entry; entry = data.feed.entry[i]; i++) {
+      /*
+      var contact = {
+        'name' : entry['title']['$t'],
+        'id' : entry['id']['$t'],
+        'emails' : []
+      };
+      */
 
-    if (entry['gd$email']) {
-      var emails = entry['gd$email'];
-      for (var j = 0, email; email = emails[j]; j++) {
-        this.google_contacts_hash[email['address']] = entry['id']['$t'];
-        //contact['emails'].push(email['address']);
+      if (entry['gd$email']) {
+        var emails = entry['gd$email'];
+        for (var j = 0, email; email = emails[j]; j++) {
+          this.google_contacts_hash[email['address']] = entry['id']['$t'];
+          //contact['emails'].push(email['address']);
+        }
       }
-    }
 
-    /*
-    if (!contact['name']) {
-      contact['name'] = contact['emails'][0] || "<Unknown>";
+      /*
+      if (!contact['name']) {
+        contact['name'] = contact['emails'][0] || "<Unknown>";
+      }
+      */
     }
-    */
+  } else {
+    console.log('No Contacts');
   }
-
   console.log(this.google_contacts_hash);
 
   this.doNextAction();
@@ -218,7 +217,8 @@ GoogleExport.prototype.getGmailContacts = function() {
       {
         'parameters' : {
         'max-results' : 100000,
-        'alt' : 'json'
+        'alt' : 'json',
+        'group' : this.contact_group_id
       }
   });
 
@@ -261,28 +261,28 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
 
   if (friend.fb) {
     // The friend's FB page, direct website.
-    var website = $("<gcontact:website/>")
-        .attr("label", "facebook profile")
-        .attr("href", friend.fb);
-    $(entry).append(website);
+    var gdim = $('<gcontact:website/>')
+        .attr('label', 'Facebook Profile')
+        .attr('href', friend.fb);
+    $(entry).append(gdim);
   }
-  
+  console.log(friend);
   if (friend.phone.mobile) {
-    var mobile = $('<gd:phoneNumber/>')
+    var gdim = $('<gd:phoneNumber/>')
         .attr('rel', 'http://schemas.google.com/g/2005#mobile')
         .text(friend.phone.mobile);
     $(entry).append(gdim);
   }
   
   if (friend.phone.other) {
-    var mobile = $('<gd:phoneNumber/>')
+    var gdim = $('<gd:phoneNumber/>')
         .attr('rel', 'http://schemas.google.com/g/2005#other')
         .text(friend.phone.other);
     $(entry).append(gdim);
   }
   
   if (friend.address) {
-    var mobile = $('<gd:postalAddress/>')
+    var gdim = $('<gd:postalAddress/>')
         .attr('rel', 'http://schemas.google.com/g/2005#home')
         .text(friend.address);
     $(entry).append(gdim);
@@ -294,32 +294,32 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
   if (friend.im.skype) {
       var gdim = $('<gd:im/>')
           .attr('address', friend.im.skype)
-          .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#SKYPE');
+          .attr('rel', 'http://schemas.google.com/g/2005#home')
+          .attr('protocol', 'http://schemas.google.com/g/2005#SKYPE');
       $(entry).append(gdim);
   }
   
   if (friend.im.gtalk) {
       var gdim = $('<gd:im/>')
           .attr('address', friend.im.gtalk)
-          .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#GOOGLE_TALK');
+          .attr('rel', 'http://schemas.google.com/g/2005#home')
+          .attr('protocol', 'http://schemas.google.com/g/2005#GOOGLE_TALK');
       $(entry).append(gdim);
   }
   
   if (friend.im.hotmail) {
       var gdim = $('<gd:im/>')
           .attr('address', friend.im.hotmail)
-          .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#MSN');
+          .attr('rel', 'http://schemas.google.com/g/2005#home')
+          .attr('protocol', 'http://schemas.google.com/g/2005#MSN');
       $(entry).append(gdim);
   }
   
   if (friend.im.yahoo) {
       var gdim = $('<gd:im/>')
           .attr('address', friend.im.yahoo)
-          .attr('rel', 'http://schemas.google.com/g/2005#home');
-      gdim.attr('protocol', 'http://schemas.google.com/g/2005#YAHOO');
+          .attr('rel', 'http://schemas.google.com/g/2005#home')
+          .attr('protocol', 'http://schemas.google.com/g/2005#YAHOO');
       $(entry).append(gdim);
   }
   
@@ -359,10 +359,13 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
   // "div" root element will not be included, but is necessary to call html().
   var s = $('<div/>').append(entry).html();
 
-  // Jquery doesn't give a damn about the case of the tags, making everything
+  // JavaScript treats attribute as case-insensative the case of the tags, making everything
   // lowercase.  We need to fix that, as google expects tags in the right case.
   // This really sucks.
   s = s.replace(/gd:fullname/g, 'gd:fullName');
+  s = s.replace(/gd:phonenumber/g, 'gd:phoneNumber');
+  s = s.replace(/gd:postaladdress/g, 'gd:postalAddress');
+  s = s.replace(/displayname/g, 'displayName');
   s = s.replace(/gcontact:groupmembershipinfo/g, 'gcontact:groupMembershipInfo');
 
   var request = {
@@ -378,7 +381,6 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     'body': s
   };
 
-  console.log(s);
   this.oauth.sendSignedRequest(GoogleExport.CONTACTS_FEED,
                                jQuery.proxy(this.onAddContact, this),
                                request, friend);
@@ -387,7 +389,6 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
 GoogleExport.prototype.onAddContact = function(text, xhr, friend) {
   // This script runs in the context of background.html, so using
   // "worker_id" is valid.
-  console.log(text);
   this.callback({
       finishedProcessingFriend: true,
       friend: friend,
@@ -449,11 +450,16 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
     });
   }
 
+  var i = 0;
   // Now we're ready to add the remaining, non-duplicate friends to google
   // contacts.
   for (var i in non_duplicate_friends_to_import) {
     var friend = non_duplicate_friends_to_import[i];
     this.addFriendToGoogleContacts(friend);
+    i++;
+    if (i == 5) {
+      break;
+    }
   }
 
   this.doNextAction();

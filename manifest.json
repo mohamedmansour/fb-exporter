@@ -24,5 +24,5 @@
       "https://www.google.com/accounts/OAuthAuthorizeToken", 
       "https://www.google.com/accounts/OAuthGetAccessToken" 
     ],
-   "version": "2.0"
+   "version": "2.0.1"
 }
