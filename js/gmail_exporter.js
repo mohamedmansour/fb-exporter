@@ -450,16 +450,11 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
     });
   }
 
-  var i = 0;
   // Now we're ready to add the remaining, non-duplicate friends to google
   // contacts.
   for (var i in non_duplicate_friends_to_import) {
     var friend = non_duplicate_friends_to_import[i];
     this.addFriendToGoogleContacts(friend);
-    i++;
-    if (i == 5) {
-      break;
-    }
   }
 
   this.doNextAction();
