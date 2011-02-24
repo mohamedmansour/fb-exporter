@@ -24,7 +24,7 @@ and choose anyone.
 
  - Not only exports your friends emails, it exports your contacts phone numbers,
  emails, end IM screen names such as Google Talk, Yahoo, ICQ, Skype, QQ, and MSN
- (Windows Live Messenger, Hotmail).
+ (Windows Live Messenger, Hotmail), and your friends birthday!
  
  - There are error handling routines as well, if Facebook doesn't like what your 
 doing, it will stop instantaneously! You can start it back again next day or
