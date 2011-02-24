@@ -7,7 +7,7 @@ CSVExporter = function(friends) {
                   'Phone Mobile', 'Phone Other',
                   'Google Talk', 'MSN', 'Skype', 'Yahoo',
                   'Website 1', 'Website 2', 'Website 3',
-                  'Website Facebook', 'Address'
+                  'Website Facebook', 'Address', 'Birthday'
                  ];
   this.dump = '';
 };
@@ -51,6 +51,9 @@ CSVExporter.prototype.process = function(callback) {
     // Address parsing.
     this.addColumn_(csv_row, friend.address);
 
+    // Birthday parsing.
+    this.addColumn_(csv_row, friend.birthday);
+    
     csv_rows.push(csv_row);
 
     // Callback to inform client 

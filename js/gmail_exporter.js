@@ -266,7 +266,13 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
         .attr('href', friend.fb);
     $(entry).append(gdim);
   }
-  console.log(friend);
+
+  if (friend.birthday) {
+    var gdim = $('<gcontact:birthday/>')
+         .when(friend.birthday);
+    $(entry).append(gdim);
+  }
+  
   if (friend.phone.mobile) {
     var gdim = $('<gd:phoneNumber/>')
         .attr('rel', 'http://schemas.google.com/g/2005#mobile')
