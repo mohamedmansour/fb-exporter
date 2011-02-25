@@ -117,19 +117,19 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     var birthday = $('td:last', $('td.label:contains("Birthday")', $(document)).parent());
 
     // Storage for post processing. Cleanup and parse groups.
-    friend.fb = this.parseFacebookURL(fb.text(), friend.id);
+    friend.fb = that.parseFacebookURL(fb.text(), friend.id);
     friend.phone = {};
     friend.phone.mobile = mobile.text();
     friend.phone.other = phone.text();
     friend.address = address.text();
-    friend.birthday = this.parseBirthday(birthday.text());
+    friend.birthday = that.parseBirthday(birthday.text());
     friend.im = {};
     friend.im.skype = skype.text();
     friend.im.gtalk = gtalk.text();
     friend.im.yahoo = gtalk.text();
     friend.im.hotmail = hotmail.text();
-    friend.email = this.parseEmails(emails);
-    friend.websites = this.parseWebsites(websites);
+    friend.email = that.parseEmails(emails);
+    friend.websites = that.parseWebsites(websites);
     callback(friend);
   };
   this.xhr.open('GET', url);
