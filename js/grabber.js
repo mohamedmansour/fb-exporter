@@ -1,10 +1,9 @@
 
 /**
  * Profile Grabbers main responsibility to parse profiles data.
- * This 
  */
 ProfileGrabber = function() {
-  // For some reason $.ajax doesn't work with Facebook. Anyhow, jQuery will 
+  // For some reason $.ajax doesn't work with Facebook. Anyhow, jQuery will
   // be remove in the future, too overkill for what we need.
   this.xhr = new XMLHttpRequest();
   this.xhr.overrideMimeType('application/xml');
@@ -14,7 +13,7 @@ ProfileGrabber = function() {
  * Add a leading 0 if necessary.
  *
  * @param {number} num the number to format.
- * @return {string} formatted number with two digits. 
+ * @return {string} formatted number with two digits.
  */
 ProfileGrabber.prototype.twoDigitsFormat = function(num) {
   return (num < 10) ? '0'+ num : num;
@@ -102,7 +101,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
   that = this;
   this.xhr.onload = function() {
     var dom = that.xhr.responseXML;
-    
+
     // To gather additional friend information, add the right selector here.
     var emails = $('td:last a', $('td.label:contains("Email")', $(dom)).parent());
     var fb = $('td:last', $('td.label:contains("Profile")', $(dom)).parent());
