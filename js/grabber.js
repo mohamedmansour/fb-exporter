@@ -113,7 +113,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     var hotmail = $('td:last', $('td.label:contains("Windows")', $(dom)).parent());
     var yahoo = $('td:last', $('td.label:contains("Yahoo! Messenger")', $(dom)).parent());
     var websites = $('td a', $('td.label:contains("Website")', $(dom)).parent());
-    var birthday = $('td:last', $('td.label:contains("Birthday")', $(document)).parent());
+    var birthday = $('td:last', $('td.label:contains("Birthday")', $(dom)).parent());
 
     // Storage for post processing. Cleanup and parse groups.
     friend.fb = that.parseFacebookURL(fb.text(), friend.id);
