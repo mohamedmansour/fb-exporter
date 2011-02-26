@@ -452,7 +452,7 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
         finishedProcessingFriend: true,
         friend: friend,
         success: 0,
-        message: 'Not added: It looks like this friend is already in your Google Contacts!'
+        message:  'Not added: Friend is already in your Google Contacts or No email address exists!';
     });
   }
 

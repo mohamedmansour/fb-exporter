@@ -3,6 +3,7 @@
  * Profile Grabbers main responsibility to parse profiles data.
  */
 ProfileGrabber = function() {
+  this.domParser = new DOMParser();
   // For some reason $.ajax doesn't work with Facebook. Anyhow, jQuery will
   // be remove in the future, too overkill for what we need.
   this.xhr = new XMLHttpRequest();
@@ -101,7 +102,13 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
   that = this;
   this.xhr.onload = function() {
     var dom = that.xhr.responseXML;
-
+    // Some users have problem reading the response type for XML. Perhaps this
+    // is due to the mangled headers or perhaps firewall denying access.
+    // This is a small fix to read it from responseText since it should be 
+    // available then.
+    if (!dom) {
+      dom = that.domParser.parseFromString(that.xhr.responseText, 'application/xml');
+    }
     // To gather additional friend information, add the right selector here.
     var emails = $('td:last a', $('td.label:contains("Email")', $(dom)).parent());
     var fb = $('td:last', $('td.label:contains("Profile")', $(dom)).parent());
