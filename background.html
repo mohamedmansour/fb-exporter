@@ -130,7 +130,7 @@ function startExportFriendData() {
       // Delay load each friend.
       var delay = i * 11000 + Math.random() * 1000;
       setTimeout(function() {
-        var friend = { id: key, name: value.text };
+        var friend = { id: key, name: value.text, photo: value.photo };
         chrome.tabs.sendRequest(worker_id, {
             friendExtractionStarted: key, 
             name: friend.name
