@@ -1,0 +1,105 @@
+/* Extension Options Default Style */
+
+body {
+  min-width: 650px;
+  font-size: 87%;
+  font-family: Arial, Helvetica, 'Helvetica Neue', Verdana, sans-serif;
+  margin: 10px;
+}
+
+#header h1 {
+  background: url("/img/icon48.png") 0px 30px no-repeat;
+  display: inline;
+  margin: 0;
+  padding-bottom: 43px;
+  padding-left: 55px;
+  padding-top: 40px;
+  font-size: 150%;
+  font-weight: bold;
+}
+
+h3 {
+  color: #444;
+}
+
+em {
+  font-size: 50%;
+  font-weight: normal;
+}
+
+dt {
+  width: 15em;
+  padding: .5em;
+  float: left;
+  margin: 0;
+}
+
+dd {
+  margin-left: 16em;
+  padding: .4em;
+}
+
+a {
+  color: blue;
+  font-size: 100%;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+.extension-template {
+  border-bottom: 1px solid #cdcdcd;
+  margin: 10px 0;
+}
+
+.extension-header {
+  background: #ebeff9;
+  border-top: 1px solid #b5c7de;
+  padding: 3px 5px;
+  font-weight: bold;
+}
+
+.extension-options {
+  background: #f4f6fc;
+  border-bottom: 1px solid #edeff5;
+  font-size: 85%;
+  padding: 0.8em 10px;
+}
+ 
+.note {
+  background-color: #e0f2c0;
+  border-radius: 5px;
+  padding: 3px 5px;
+  margin-right: 30px;
+}
+
+#extension-footer {
+  text-align: right;
+  padding: 10px 0px;
+}
+
+#header {
+  margin-bottom: 1.05em;
+  overflow: hidden;
+  padding-bottom: 1.5em;
+  padding-left: 0;
+  padding-top: 1.5em;
+  position: relative;
+}
+
+#info-message {
+  -webkit-transition-duration: 1s;
+  display: none;
+  background:#FDFFBD none repeat scroll 0 0;
+  border-radius: 5px;
+  padding: 7px 10px;
+  margin-right: 30px;
+}
+
+#credits {
+  font-size: 85%;
+  margin-top: 1em;
+  text-align: right;
+}

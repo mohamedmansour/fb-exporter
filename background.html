@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 
+<script type="text/javascript" src="/js/settings.js"></script>
+
 <!-- Web SQL Database to store friends.. -->
 <script type="text/javascript" src="/js/database.js"></script>
 
@@ -29,13 +31,27 @@ var cachedMap = {};
 // Start it globally.
 db.open();
 
-// Initialize database.
-var first_install = localStorage['first_install'];
-if (typeof key == 'undefined') {
-  db.createTable();
-} else {
-  localStorage['first_install'] = 1;
+// Synchronously retrieve the current extension version.
+var version = 'NaN';
+var xhr = new XMLHttpRequest();
+xhr.open('GET', chrome.extension.getURL('manifest.json'), false);
+xhr.send(null);
+var manifest = JSON.parse(xhr.responseText);
+var currVersion = manifest.version;
+var prevVersion = settings.version;
+
+// Check if the extension has been just updated or installed.
+if (currVersion != prevVersion) {
+  if (typeof prevVersion == 'undefined') {
+    // onInstall: Create the database tables.
+    db.createTable();
+  }
+  else {
+    // onUpdate: Do nothing now. 
+  }  
+  settings.version = currVersion;
 }
+
 
 /**
 * Open a singleton page, which means, if a page already exists, it just selects it.
