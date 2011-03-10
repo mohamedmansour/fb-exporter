@@ -109,18 +109,34 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     if (!dom) {
       dom = that.domParser.parseFromString(that.xhr.responseText, 'application/xml');
     }
+    else {
+      dom = $(dom);
+    }
+    
+    // This is the extreme case, I believe there is a bug in Google Chrome the 
+    // way it handles irregular Facebook pages. It just quits without indication
+    // somehow the DOMParser fails and doesn't continue. 
+    //        https://github.com/mohamedmansour/fb-exporter/issues/#issue/4
+    //
+    // Use jQuery to convert it automatically. This will throw and error on the
+    // page every single time. I really hate this approach, but there is no way
+    // to supress the error as far as I know without doing mucky stuff.
+    if (!dom || dom.querySelector('parsererror')) {
+      dom = $(that.xhr.responseText);
+    }
+    
     // To gather additional friend information, add the right selector here.
-    var emails = $('td:last a', $('td.label:contains("Email")', $(dom)).parent());
-    var fb = $('td:last', $('td.label:contains("Profile")', $(dom)).parent());
-    var phone = $('td:last', $('td.label:contains("Phone")', $(dom)).parent());
-    var mobile = $('td:last', $('td.label:contains("Mobile")', $(dom)).parent());
-    var address = $('td:last', $('td.label:contains("Address")', $(dom)).parent());
-    var skype = $('td:last', $('td.label:contains("Skype")', $(dom)).parent());
-    var gtalk = $('td:last', $('td.label:contains("Google Talk")', $(dom)).parent());
-    var hotmail = $('td:last', $('td.label:contains("Windows")', $(dom)).parent());
-    var yahoo = $('td:last', $('td.label:contains("Yahoo! Messenger")', $(dom)).parent());
-    var websites = $('td a', $('td.label:contains("Website")', $(dom)).parent());
-    var birthday = $('td:last', $('td.label:contains("Birthday")', $(dom)).parent());
+    var emails = $('td:last a', $('td.label:contains("Email")', dom).parent());
+    var fb = $('td:last', $('td.label:contains("Profile")', dom).parent());
+    var phone = $('td:last', $('td.label:contains("Phone")', dom).parent());
+    var mobile = $('td:last', $('td.label:contains("Mobile")', dom).parent());
+    var address = $('td:last', $('td.label:contains("Address")', dom).parent());
+    var skype = $('td:last', $('td.label:contains("Skype")', dom).parent());
+    var gtalk = $('td:last', $('td.label:contains("Google Talk")', dom).parent());
+    var hotmail = $('td:last', $('td.label:contains("Windows")', dom).parent());
+    var yahoo = $('td:last', $('td.label:contains("Yahoo! Messenger")', dom).parent());
+    var websites = $('td a', $('td.label:contains("Website")', dom).parent());
+    var birthday = $('td:last', $('td.label:contains("Birthday")', dom).parent());
 
     // Storage for post processing. Cleanup and parse groups.
     friend.fb = that.parseFacebookURL(fb.text(), friend.id);
