@@ -6,7 +6,7 @@
     "128": "img/icon128.png"
    },
    "content_scripts": [ {
-      "js": [ "/js/lib/jquery-1.4.2.min.js", "/js/content_script.js" ],
+      "js": [ "/js/lib/jquery-1.5.1.min.js", "/js/content_script.js" ],
       "matches": [ 
         "http://*.facebook.com/*",
         "https://*.facebook.com/*"
