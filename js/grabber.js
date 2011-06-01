@@ -80,7 +80,14 @@ ProfileGrabber.prototype.parseEmails = function(emails) {
  */
 ProfileGrabber.prototype.parseWebsites = function(websites) {
   return websites.map(function() {
-    return $(this).attr('href').replace('/l.php?u=', '').replace(/%3A/g,':').replace(/%2F/g,'/');
+    var url = decodeURIComponent($(this).attr('href'));
+    // The patten extracts the URL from the following patterns if they match:
+    //   - A clean URL
+    //   - Prefixed with "/l.php?u=" stripped from URL.
+    //   - Request parameters in the form of ?h=\w+&refid=\d+
+    //   - Request parameters in an irregular form of &h=\w+&refid=\d+
+    var pattern = /^(?:\/l.php\?u=)?(.*?)(?:(?:&amp;|\?|&)h=\w+(?:&amp;|&)refid=\d+)?$/;
+    return url.replace(pattern, '$1');
   }).get();
 };
 
