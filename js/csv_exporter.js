@@ -3,11 +3,11 @@
  */
 CSVExporter = function(friends) {
   this.friends = friends;
-  this.header = ['Name', 'Email 1', 'Email 2', 'Email 3',
-                  'Phone Mobile', 'Phone Other',
+  this.header = ['Name', 'E-mail Address 1', 'E-mail Address 2', 'E-mail Address 3',
+                  'Mobile Phone', 'Home Phone',
                   'Google Talk', 'MSN', 'Skype', 'Yahoo',
                   'Website 1', 'Website 2', 'Website 3',
-                  'Website Facebook', 'Address', 'Birthday'
+                  'Website Facebook', 'Home Address', 'Birthday'
                  ];
   this.dump = '';
 };
