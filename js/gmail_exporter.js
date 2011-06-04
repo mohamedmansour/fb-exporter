@@ -354,6 +354,15 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     }
   }
 
+  // Your friends profile image.
+  if (friend.photos) {
+      var gdim = $('<link/>')
+          .attr('rel', 'http://schemas.google.com/contacts/2008/rel#photo')
+          .attr('type', 'image/*')
+          .attr('href', friend.photo);
+      $(entry).append(gdim);
+  }
+  
   // Finally, add the friend to the right group (the one we (possibly) created
   // above, that houses the facebook exports).
   var groupMembershipInfo = $('<gcontact:groupMembershipInfo/>')

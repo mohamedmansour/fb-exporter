@@ -200,5 +200,6 @@ function renderExportFriendsLink() {
       .text('Export friends!')
       .css('color', 'white')
       .click(goToFriendPageAndStart);
-  exportFriendsLink.appendTo($('#pageNav a:contains("Home")').parent());
+  $(exportFriendsLink).attr('id', '');
+  $('#pageNav a:contains("Home")').parent().after(exportFriendsLink);
 }
