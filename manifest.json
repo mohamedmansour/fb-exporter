@@ -1,7 +1,7 @@
 {
   "name": "Facebook Friend Exporter",
   "description": "Get *your* data contact out of Facebook to Google Contacts or CSV, whether they want you to or not.",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "background_page": "background.html",
   "options_page": "options.html",
   "icons": {

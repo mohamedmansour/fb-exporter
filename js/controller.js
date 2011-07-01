@@ -44,7 +44,7 @@ function renderFriendList(friendsMap, count) {
       $(li).addClass('friend-row')
            .attr('id', key)
            .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                 '<span>' + (result.status ? 'CACHED' : 'READY') + '</span>')
+                 '<span>' + value.text + "</br>" + (result.status ? 'CACHED' : 'READY') + '</span>')
            .click(
              function() {
                 chrome.tabs.create({url: 'http://facebook.com' + value.path });
@@ -132,7 +132,7 @@ function gotInfoForFriend(friend) {
     log('Finished processing [' + friend.name + ']');
   }
   var item = $('#' + friend.id);
-  item.find('span').text(success ? 'PROCESSED' : 'FAILED');
+  item.find('span').text(friend.name);
   item.removeClass('starting');
   item.addClass(success ? 'processed' : 'failed');
   
