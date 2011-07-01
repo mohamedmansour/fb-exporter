@@ -44,7 +44,7 @@ function renderFriendList(friendsMap, count) {
       $(li).addClass('friend-row')
            .attr('id', key)
            .html('<img src="' + value.photo + '" title="' + value.text + '"/>' +
-                 '<span>' + value.text + "</br>" + (result.status ? 'CACHED' : 'READY') + '</span>')
+                 '<span>' + value.text + '</span>')
            .click(
              function() {
                 chrome.tabs.create({url: 'http://facebook.com' + value.path });
