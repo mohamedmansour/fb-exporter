@@ -53,7 +53,7 @@ p {
   bottom: 0;
   left: 5px;
   height: 20px;
-  width: 60px;
+  width: 100px;
   background-color: rgba(0,0,0,0.4);
   border-radius: 10px;
   font-size: 8px;
@@ -83,8 +83,8 @@ p {
 }
 
 #friendlist li img {
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 80px;
   margin: 5px;
   border: 5px solid #444;
 }
