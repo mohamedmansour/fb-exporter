@@ -273,18 +273,13 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
     $(entry).append(gdim);
   }
   
-  if (friend.phone.mobile) {
-    var gdim = $('<gd:phoneNumber/>')
-        .attr('rel', 'http://schemas.google.com/g/2005#mobile')
-        .text(friend.phone.mobile);
-    $(entry).append(gdim);
-  }
-  
-  if (friend.phone.other) {
-    var gdim = $('<gd:phoneNumber/>')
-        .attr('rel', 'http://schemas.google.com/g/2005#other')
-        .text(friend.phone.other);
-    $(entry).append(gdim);
+  if (friend.phones) {
+    for (var i = 0; i < friend.phones.length; i++) {
+      var gdim = $('<gd:phoneNumber/>')
+          .attr('rel', 'http://schemas.google.com/g/2005#other')
+          .text(friend.phones[i]);
+      $(entry).append(gdim);
+    }
   }
   
   if (friend.address) {
@@ -329,12 +324,12 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
       $(entry).append(gdim);
   }
   
-  if (friend.email) {
+  if (friend.emails) {
     // Handle multiple emails.  The .email property is a list of defined
     // email.
     var primary_email_set = false;
-    for (key in friend.email) {
-      var gdemail = $('<gd:email/>').attr('address', friend.email[key]);
+    for (var i = 0; i < friend.emails.length; i++) {
+      var gdemail = $('<gd:email/>').attr('address', friend.emails[i]);
       gdemail.attr('displayName', friend.name);
       gdemail.attr('rel', 'http://schemas.google.com/g/2005#home');
       if (!primary_email_set) {
@@ -429,8 +424,8 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
     var friend = friends_with_emails[j];
     // See if the emails address for this friend matches one in the existing
     // google contacts.  If so, skip this friend.
-    for (var i in friend.email) {
-      var email = friend.email[i];
+    for (var i in friend.emails) {
+      var email = friend.emails[i];
 
       if (!this.google_contacts_hash[email]) {
         non_duplicate_friends_to_import.push(friend);

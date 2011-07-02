@@ -71,6 +71,18 @@ ProfileGrabber.prototype.parseEmails = function(emails) {
 };
 
 /**
+ * Parses friends list of phones.
+ *
+ * @param {Array<DOM>} phones An array of emails.
+ * @return {Array<string>} phones as an array of strings.
+ */
+ProfileGrabber.prototype.parsePhones = function(phones) {
+  return phones.map(function() {
+    return $(this).text();
+  }).get();
+};
+
+/**
  * Parses friends websites that they like to share.
  * This will remove the garbage from the beginning of the string if exists and
  * just extracts the href from each link.
@@ -135,8 +147,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     // To gather additional friend information, add the right selector here.
     var emails = $('td:last a', $('td.label:contains("Email")', dom).parent());
     var fb = $('td:last', $('td.label:contains("Profile")', dom).parent());
-    var phone = $('td:last', $('td.label:contains("Phone")', dom).parent());
-    var mobile = $('td:last', $('td.label:contains("Mobile")', dom).parent());
+    var phones = $('td:last a', $('td.label:contains("Phone")', dom).parent());
     var address = $('td:last', $('td.label:contains("Address")', dom).parent());
     var skype = $('td:last', $('td.label:contains("Skype")', dom).parent());
     var gtalk = $('td:last', $('td.label:contains("Google Talk")', dom).parent());
@@ -147,9 +158,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
 
     // Storage for post processing. Cleanup and parse groups.
     friend.fb = that.parseFacebookURL(fb.text(), friend.id);
-    friend.phone = {};
-    friend.phone.mobile = mobile.text();
-    friend.phone.other = phone.text();
+    friend.phones = that.parsePhones(phones);
     friend.address = address.text();
     friend.birthday = that.parseBirthday(birthday.text());
     friend.im = {};
@@ -157,7 +166,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     friend.im.gtalk = gtalk.text();
     friend.im.yahoo = gtalk.text();
     friend.im.hotmail = hotmail.text();
-    friend.email = that.parseEmails(emails);
+    friend.emails = that.parseEmails(emails);
     friend.websites = that.parseWebsites(websites);
     callback(friend);
   };
