@@ -72,7 +72,7 @@ CSVExporter.prototype.process = function(callback) {
 
   this.dump = this.header.join(',') + '\n';
 
-  for (i in csv_rows) {
+  for (i = 0; i < csv_rows.length; i++) {
     this.dump += csv_rows[i].join(',') + '\n';
   }
 };

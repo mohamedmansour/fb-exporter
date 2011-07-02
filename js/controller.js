@@ -125,7 +125,7 @@ function gotInfoForFriend(friend) {
   var success = true;
   
   // If the email is empty
-  if (friend.email.length == 1 && friend.email[0] == '') {
+  if (friend.emails.length == 1 && friend.emails[0] == '') {
     log('Finished processing [' + friend.name + '] FAIL, no email.' );
     success = false;
   } else {

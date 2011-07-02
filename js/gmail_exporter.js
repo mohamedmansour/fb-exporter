@@ -153,7 +153,7 @@ GoogleExport.prototype.onGetContactGroups = function(text, xhr) {
 
   if ('entry' in feed.feed) {
     // Some entries (ie, groups) exist, see if one of them is our group.
-    for (key in feed.feed.entry) {
+    for (var key = 0; key < feed.feed.entry.length; key++) {
       if (feed.feed.entry[key].title.$t == GoogleExport.CONTACT_GROUP_NAME) {
         this.saveContactGroupHrefFromGroupObject(feed.feed.entry[key]);
         return this.doNextAction();
@@ -341,7 +341,7 @@ GoogleExport.prototype.addFriendToGoogleContacts = function(friend) {
   }
 
   if (friend.websites) {
-    for (key in friend.websites) {
+    for (var key = 0; key < friend.websites.length; key++) {
       var website = $('<gcontact:website/>')
                              .attr('label', 'homepage')
                              .attr('href', friend.websites[key]);
@@ -420,11 +420,11 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
   // contacts that DON'T already exist there.  We determine non-duplicate
   // friends based on their email address already being in the Google contacts.
   var non_duplicate_friends_to_import = [];
-  for (var j in friends_with_emails) {
+  for (var j = 0; j < friends_with_emails.length; j++) {
     var friend = friends_with_emails[j];
     // See if the emails address for this friend matches one in the existing
     // google contacts.  If so, skip this friend.
-    for (var i in friend.emails) {
+    for (var i = 0; i < friend.emails.length; i++) {
       var email = friend.emails[i];
 
       if (!this.google_contacts_hash[email]) {
@@ -440,7 +440,7 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
   // non_duplicate_friends_to_import is the list of friends that we are NOT
   // adding because they already exist in google contacts.  We need to report
   // these back to the work tab as well.
-  for (var i in non_duplicate_friends_to_import) {
+  for (var i = 0; i < non_duplicate_friends_to_import.length; i++) {
     var friend = non_duplicate_friends_to_import[i];
     if ($.inArray(friend, friends_with_emails) != -1) {
       delete friends_with_emails[$.inArray(friend, friends_with_emails)];
@@ -450,7 +450,7 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
   // friends_with_emails has now been pruned to remove all non-duplicate
   // emails.  The remaining friends_with_emails contains only duplicate friends
   // that we don't intend to add, so notify the work tab.
-  for (var i in friends_with_emails) {
+  for (var i = 0; i < friends_with_emails.length; i++) {
     var friend = friends_with_emails[i];
     this.callback({
         finishedProcessingFriend: true,
@@ -462,7 +462,7 @@ GoogleExport.prototype.startExportingRequestedContacts = function() {
 
   // Now we're ready to add the remaining, non-duplicate friends to google
   // contacts.
-  for (var i in non_duplicate_friends_to_import) {
+  for (var i = 0; i < non_duplicate_friends_to_import.length; i++) {
     var friend = non_duplicate_friends_to_import[i];
     this.addFriendToGoogleContacts(friend);
   }
