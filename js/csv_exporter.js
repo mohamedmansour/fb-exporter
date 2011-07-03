@@ -27,14 +27,12 @@ CSVExporter.prototype.process = function(callback) {
     csv_row.push(friend.name);
 
     // Email parsing.
-    length = friend.emails.length > 3 ? 3 : friend.emails.length;
-    for (i = 0; i < length; i++){
+    for (i = 0; i < 3; i++){
       this.addColumn_(csv_row, friend.emails[i]);
     }
     
     // Phones.
-    length = friend.phones.length > 2 ? 2 : friend.phones.length;
-    for (i = 0; i < length; i++){
+    for (i = 0; i < 2; i++){
       this.addColumn_(csv_row, friend.phones[i]);
     }
     
@@ -45,8 +43,7 @@ CSVExporter.prototype.process = function(callback) {
     this.addColumn_(csv_row, friend.im.yahoo);
 
     // Website parsing.
-    length = friend.websites.length > 3 ? 3 : friend.websites.length;
-    for (i = 0; i < length; i++){
+    for (i = 0; i < 3; i++){
       this.addColumn_(csv_row, friend.websites[i]);
     }
     
