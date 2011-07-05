@@ -50,10 +50,7 @@
    -->
   <div class="bubble" id="step2">
     <p> Fetching friend list... done.  See below.</p>
-    <p> These are all the frends that will be exported, 
-        <button id="start-crunching">let's start!</button>
-        <button id="delete-cache">delete cache!</button>
-    </p>
+    <p> These are all the frends that will be exported.</p>
   </div>
   <!-- 
     STEP 3:
@@ -76,37 +73,35 @@
    -->
   <div class="bubble" id="step4">
     <p>All done!  Please check the list below. Uncheck the friends you want to skip.</p>
-    <p>Now the fun part!  Pick an export button below, and we'll get started
+    <p>Now the fun part! Pick an export button below, and we'll get started
        copying your friend data there!</p>
-    <ul id="export-methods">
-      <li class="export-method">
-        <input type="image" src="/img/gmail-logo.jpg" id="export-to-gmail" width="60" />
-        This will log you into your GMail account, and import your Facebook friend data
-        into your Contacts.  We'll create a group in your GMail contacts called
-        <span class="hilite">"Imported from Facebook"</span> and we'll avoid
-        duplicating any existing contacts.
-      </li>
-      <li class="export-method">
-        <input type="image" src="/img/csv-icon.gif" id="export-to-csv" />
-        This will export your contacts as a CSV file.
-      </li>
-    </ul>
   </div>
+  
   <!-- 
     BASIC LAYOUT
    -->
-   <div class="bubble" id="friendlist">
-
-    <div id="controls">
-      <button id="btnLog">View log</button>
-    </div>
+  <div class="bubble" id="friendlist">
+    <ul id="controls">
+      <li>Controls: </li>
+      <li><button id="btnLog">View log</button></li>
+      <li><button id="export-to-gmail">Gmail Export</button></li>
+      <li><button id="export-to-csv">CSV Export</button></li>
+      <li><button id="start-crunching">Start exporting!</button></li>
+      <li><button id="delete-cache">Delete cache!</button></li>
+    </ul>
+    <ul>
+      <li>Status: </li>
+      <li id="remaining-friend-count"></li>
+    </ul> 
+    <ul id="legend">
+      <li>Legend: </li>
+	    <li class="processed" ><span>Processed</span></li>
+	    <li class="success" style="left:80px"><span>Success</span></li>
+	    <li class="failed" style="left:160px"><span>Failed</span></li>
+	    <li class="cached" style="left:240px"><span>Cached</span></li>
+	  </ul>
     <textarea id="log"></textarea>
-	   <li class="processed" ><span>Processed</span></li>
-	   <li class="success" style="left:80px"><span>Success</span></li>
-	   <li class="failed" style="left:160px"><span>Failed</span></li>
-	   <li class="cached" style="left:240px"><span>Cached</span></li>
     <div>
-      <div id="remaining-friend-count"></div>
       <div id="note">
         <h1>NOTICE</h2>
         <p>Facebook doesn't like it when we visit our friends alot. And if visit 
@@ -120,7 +115,7 @@
         in an hour, and everything is cached, so it will start where you left off :)</p>
       </div>
       <ul id="friendlist"/>
-      </div>
+    </div>
   </div>
   <img id="ajax-loader" src="/img/ajax-loader.gif"/>
 </body>

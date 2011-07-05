@@ -114,13 +114,11 @@ p {
   display: none;
 }
 
-#remaining-friend-count {
-  font-size: 11pt;
+#legend {
   position: absolute;
-  display: none;
   padding: 3pt;
-  top: 0px;
-  right: 0px;
+  top: 70px;
+  right: 400px;
 }
 
 .friend-detail {
@@ -178,12 +176,6 @@ p {
   bottom: 30px;
 
   font-size: 10pt;
-}
-
-#controls {
-  position: absolute;
-  top: 5px;
-  left: 30px;
 }
 
 #log {
