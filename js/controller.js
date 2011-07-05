@@ -331,7 +331,7 @@ $(document).ready(function() {
       }
     }
     else if (request.facebookError) {
-      log('ERROR! Facebook error, they converted emails to images. Try again in 24 hours.');
+      log('ERROR! Facebook error, please log back into http://m.facebook.com. Then close this tab and restart the process.');
       $('#note').show();
       setupExportScreen();
     }

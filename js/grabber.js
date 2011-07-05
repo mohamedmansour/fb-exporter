@@ -131,6 +131,14 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
     else {
       dom = $(dom);
     }
+
+    // Check if your not logged into the mobile page. This hack is dangerous.
+    // But it makes sure none of your contacts are invalid. A better approach
+    // would be to do an XHR to the main page, but that will waste resources.
+    if ($('*', dom).html().indexOf('"/login.php') != -1) {
+      friend.error = true;
+      callback(friend);
+    }
     
     // This is the extreme case, I believe there is a bug in Google Chrome the 
     // way it handles irregular Facebook pages. It just quits without indication
@@ -144,6 +152,7 @@ ProfileGrabber.prototype.extractInfo = function(friend, url, callback) {
       dom = $(that.xhr.responseText);
     }
     
+
     // To gather additional friend information, add the right selector here.
     var emails = $('td:last a', $('td.label:contains("Email")', dom).parent());
     var fb = $('td:last', $('td.label:contains("Profile")', dom).parent());
