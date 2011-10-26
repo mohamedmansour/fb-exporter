@@ -39,7 +39,8 @@ custom one made before. I have changed the way the process works too.
 
 How to download
 ---------------
- - It is available in the Chrome Web Store https://chrome.google.com/webstore/detail/ficlccidpkaiepnnboobcmafnnfoomga
+ - It is currently not available in the Chrome Web Store. I am decided to stop
+development to focus on better and more exciting things.
 
 Facebook
 -------------
