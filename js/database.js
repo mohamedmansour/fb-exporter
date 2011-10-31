@@ -29,7 +29,7 @@ FriendDB.prototype.onError = function(tx, e) {
  */
 FriendDB.prototype.createTable = function() {
   this.db.transaction(function(tx) {
-    tx.executeSql('CREATE TABLE IF NOT EXISTS ' + 
+    tx.executeSql('CREATE TABLE IF NOT EXISTS ' +
                   'friend(id INTEGER, data TEXT, ts DATETIME)', []);
   });
 };
@@ -42,13 +42,13 @@ FriendDB.prototype.persistFriend = function(friend, onSuccess) {
   var ts = new Date();
   var data = JSON.stringify(friend);
   this.db.transaction(function(tx) {
-    tx.executeSql('INSERT INTO friend(id, data, ts) VALUES (?,?,?)', 
+    tx.executeSql('INSERT INTO friend(id, data, ts) VALUES (?,?,?)',
                   [friend.id, data, ts], onSuccess, this.onError);
   });
 };
 
 /**
- * Retrieves a row from the table given |id|. The result goes to |response|. 
+ * Retrieves a row from the table given |id|. The result goes to |response|.
  * This is an asynchronous action.
  */
 FriendDB.prototype.getFriend = function(id, response) {

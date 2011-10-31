@@ -4,12 +4,12 @@ body {
   color: #fff;
   background-color: #ccc;
 }
-::selection { 
-  background:#FF5E99; 
-  color:#fff; 
-  text-shadow: none; 
+::selection {
+  background:#FF5E99;
+  color:#fff;
+  text-shadow: none;
 }
-a { 
+a {
  color: #FF5E99;
 }
 .bubble {
@@ -20,7 +20,7 @@ a {
   border-radius: 10px;
   padding: 15pt;
 }
- 
+
 p {
   margin: 10pt;
 }
@@ -78,7 +78,7 @@ p {
   background-color: rgba(255,0,255,0.4);
 }
 
-#friendlist li.starting span { 
+#friendlist li.starting span {
   background-color: rgba(255,140,0,0.4);
 }
 
