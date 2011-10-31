@@ -11,19 +11,19 @@
   },
   "content_scripts": [ {
     "js": [ "/js/lib/jquery-1.5.2.min.js", "/js/content_script.js" ],
-    "matches": [ 
+    "matches": [
       "http://*.facebook.com/*",
       "https://*.facebook.com/*"
     ],
     "run_at": "document_end"
   } ],
-  "permissions": [ 
+  "permissions": [
       "unlimitedStorage",
-      "tabs", 
+      "tabs",
       "https://m.facebook.com/*",
       "http://m.facebook.com/*",
-      "http://www.google.com/m8/feeds/*", 
-      "https://www.google.com/accounts/OAuthAuthorizeToken", 
-      "https://www.google.com/accounts/OAuthGetAccessToken" 
+      "http://www.google.com/m8/feeds/*",
+      "https://www.google.com/accounts/OAuthAuthorizeToken",
+      "https://www.google.com/accounts/OAuthGetAccessToken"
   ]
 }
